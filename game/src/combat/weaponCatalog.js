@@ -1,12 +1,19 @@
 // Weapon definitions (original names) and inventory helpers: ammo, clips, reloading, switching.
 import { game } from '../core/gameState.js';
 
+// Field guide: damage is per hit (per pellet for the shotgun), rate is seconds between shots,
+// range is in metres, spread is the cone half-angle in radians, respect is the shop unlock tier.
 export const WEAPONS = {
-  fists: { key: 'fists', name: 'Fists', slot: 1, melee: true, damage: 15, rate: 0.42, range: 1.8 },
-  pistol: { key: 'pistol', name: 'Coral 9', slot: 2, damage: 27, rate: 0.26, clip: 12, range: 75, spread: 0.012, auto: false, price: 450, ammoPrice: 60, ammoPack: 48, sound: 'pistol', respect: 0 },
-  smg: { key: 'smg', name: 'Mako SMG', slot: 3, damage: 15, rate: 0.085, clip: 32, range: 60, spread: 0.034, auto: true, price: 1800, ammoPrice: 140, ammoPack: 128, sound: 'smg', respect: 1 },
-  shotgun: { key: 'shotgun', name: 'Tidebreaker 12', slot: 4, damage: 12, pellets: 8, rate: 0.85, clip: 6, range: 30, spread: 0.085, auto: false, price: 2600, ammoPrice: 120, ammoPack: 24, sound: 'shotgun', respect: 2 },
+  /** Bare hands: always owned, short reach, a touch quicker than before to make brawls less sluggish. */
+  fists: { key: 'fists', name: 'Fists', slot: 1, melee: true, damage: 16, rate: 0.4, range: 1.9 },
+  /** Coral 9: the starter sidearm. Accurate and cheap to feed; three or four hits drop a street thug. */
+  pistol: { key: 'pistol', name: 'Coral 9', slot: 2, damage: 28, rate: 0.25, clip: 12, range: 78, spread: 0.011, auto: false, price: 450, ammoPrice: 60, ammoPack: 48, sound: 'pistol', respect: 0 },
+  /** Mako SMG: full-auto spray for car chases. High rate of fire, loose spread, burns through ammo. */
+  smg: { key: 'smg', name: 'Mako SMG', slot: 3, damage: 14, rate: 0.08, clip: 34, range: 58, spread: 0.036, auto: true, price: 1800, ammoPrice: 140, ammoPack: 136, sound: 'smg', respect: 1 },
+  /** Tidebreaker 12: eight-pellet pump shotgun. Brutal up close, falls off fast, slow to cycle. */
+  shotgun: { key: 'shotgun', name: 'Tidebreaker 12', slot: 4, damage: 13, pellets: 8, rate: 0.9, clip: 6, range: 28, spread: 0.09, auto: false, price: 2500, ammoPrice: 120, ammoPack: 24, sound: 'shotgun', respect: 2 },
 };
+/** Cycle order for the mouse wheel and number keys; matches each weapon's slot. */
 export const WEAPON_ORDER = ['fists', 'pistol', 'smg', 'shotgun'];
 
 export const WEAPON_ICONS = {
@@ -16,6 +23,10 @@ export const WEAPON_ICONS = {
   shotgun: '<svg viewBox="0 0 84 50"><path fill="#fff" stroke="#111" stroke-width="2" d="M2 16h78v6H52v4H30l-6 14H12l4-14H2z"/><rect x="36" y="23" width="14" height="5" fill="#111"/></svg>',
 };
 
+/** Seconds a reload takes, shared by every firearm. */
+const RELOAD_SECONDS = 1.05;
+
+/** Adds a weapon to the inventory (with a full first clip) and tops up its reserve ammo. */
 export function giveWeapon(key, ammo = 0) {
   const w = WEAPONS[key];
   game.weapons[key] = true;
@@ -25,6 +36,7 @@ export function giveWeapon(key, ammo = 0) {
   }
 }
 
+/** Equips an owned weapon; returns false if the player does not have it. */
 export function selectWeapon(key) {
   if (!game.weapons[key]) return false;
   game.currentWeapon = key;
@@ -32,6 +44,7 @@ export function selectWeapon(key) {
   return true;
 }
 
+/** Steps to the next (+1) or previous (-1) owned weapon, wrapping around. */
 export function cycleWeapon(direction) {
   const owned = WEAPON_ORDER.filter((k) => game.weapons[k]);
   const i = owned.indexOf(game.currentWeapon);
@@ -44,9 +57,10 @@ export function reloadWeapon(key) {
   if (!a || w.melee || a.clip >= w.clip || a.reserve <= 0) return 0;
   const take = Math.min(w.clip - a.clip, a.reserve);
   a.clip += take; a.reserve -= take;
-  return 1.1;
+  return RELOAD_SECONDS;
 }
 
+/** Clip and reserve counts for the HUD, or null for melee and unowned weapons. */
 export function getAmmoText(key) {
   const a = game.ammo[key];
   return a ? { clip: a.clip, reserve: a.reserve } : null;
