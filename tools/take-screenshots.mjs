@@ -1,4 +1,4 @@
-// Captures the entry's screenshots from the real game: serves game/ with node:http, opens the deterministic
+// Job: capture the entry's screenshots from the real game. Serves game/ with node:http, opens the deterministic
 // screenshot mode (index.html?shot=<name>&seed=1) in headless system Chrome and writes JPEGs to screenshots/.
 //
 //   npm install --no-save playwright-core

@@ -1,5 +1,5 @@
-// Heads-up display core: money, clock, wanted stars, respect bar, health/armour, objective, prompts, crosshair,
-// title cards and the big WASTED / PASSED banners. The larger panels live in their own modules
+// Job: the heads-up display core. Money, clock, wanted stars, respect bar, health/armour, objective, prompts,
+// crosshair, title cards and the big WASTED / PASSED banners. The larger panels live in their own modules
 // (missionBanner, policePanel, weaponBar, vehiclePanel) and are updated from here.
 import { game } from '../core/gameState.js';
 import { onEvent } from '../core/eventBus.js';

@@ -1,5 +1,5 @@
-// Crew system: recruiting the three allies at their street corners (E), their ability hotkeys (Z / X / C),
-// cooldowns and what each ability does to the wanted level, the car or the police scanner.
+// Job: run the crew system. Recruits the three allies at their street corners (E), handles their ability
+// hotkeys (Z / X / C) and cooldowns, and applies each ability to the wanted level, the car or the police scanner.
 import { game } from '../core/gameState.js';
 import { wasKeyPressed } from '../core/input.js';
 import { setPrompt, playSound } from '../core/cues.js';

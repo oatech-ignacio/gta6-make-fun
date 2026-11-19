@@ -1,5 +1,6 @@
-// Street races: purple R markers start a race (E, in a vehicle). A 3-2-1 countdown, checkpoints, laps, three
-// rival drivers, live position, prize money for 1st and 2nd, and wins / best times kept in the save.
+// Job: run a street race from start to finish. Purple R markers start one (E, in a vehicle); this module owns
+// the 3-2-1 countdown, checkpoints, laps, three rival drivers, live position, prize money for 1st and 2nd,
+// and the wins / best times kept in the save.
 import { game } from '../core/gameState.js';
 import { wasKeyPressed } from '../core/input.js';
 import { setPrompt, playSound } from '../core/cues.js';

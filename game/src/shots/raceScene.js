@@ -1,5 +1,6 @@
-// Street-race scene: the Causeway Drag at golden hour. Dez's Kestrel V8 is on Pelican Causeway with the three
-// rivals around him, the next checkpoint beam ahead and the race HUD showing position, lap, checkpoint and time.
+// Job: stage the `race` screenshot. The Causeway Drag at golden hour: Dez's Kestrel V8 is on Pelican Causeway
+// with the three rivals around him, the next checkpoint beam ahead and the race HUD showing position, lap,
+// checkpoint and time.
 import { game } from '../core/gameState.js';
 import { simulateKey } from '../core/input.js';
 import { cameraRig } from '../render/followCamera.js';

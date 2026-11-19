@@ -1,5 +1,5 @@
-// Progression bookkeeping: awards respect for escapes and gang kills, records districts visited, allies met
-// and career stats, and works out the "% complete" figure shown on save slots and the pause menu.
+// Job: progression bookkeeping. Awards respect for escapes and gang kills, records districts visited, allies
+// met and career stats, and works out the "% complete" figure shown on save slots and the pause menu.
 import { game } from '../core/gameState.js';
 import { onEvent } from '../core/eventBus.js';
 import { addRespect, RESPECT_RANKS } from './economy.js';

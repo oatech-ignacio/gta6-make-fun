@@ -1,4 +1,5 @@
-// Rival racers: real vehicles on the normal physics, steered toward the next checkpoint by a small brain.
+// Job: spawn and drive the rival racers. They are real vehicles on the normal physics,
+// steered toward the next checkpoint by a small brain.
 import { game } from '../core/gameState.js';
 import { clamp, angleDiff } from '../core/mathUtils.js';
 import { spawnVehicle, removeVehicle } from '../vehicles/vehiclePhysics.js';

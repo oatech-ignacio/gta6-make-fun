@@ -1,5 +1,5 @@
-// Vehicle entities and arcade physics: engine/brake/steer, lateral grip with drift, body roll,
-// collisions against buildings, other vehicles and the shoreline, damage, smoke and explosions.
+// Job: own the vehicle entities and their arcade physics: engine/brake/steer, lateral grip with drift, body
+// roll, collisions against buildings, other vehicles and the shoreline, damage, smoke and explosions.
 import * as THREE from 'three';
 import { game } from '../core/gameState.js';
 import { clamp, damp, wrapAngle } from '../core/mathUtils.js';

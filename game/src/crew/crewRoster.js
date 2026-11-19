@@ -1,4 +1,5 @@
-// The three allies Dez can recruit around Palmera Bay, each with one ability on a cooldown.
+// Job: data table of the three allies Dez can recruit around Palmera Bay
+// (name, role, ability, hotkey, cooldown, price and recruiting spot). No logic.
 export const CREW = [
   { key: 'sable', name: 'Sable Okoro', role: 'Driver', ability: 'Decoy Run', code: 'KeyZ', label: 'Z', cooldown: 60, price: 1500, spot: { x: 347, z: 100 },
     blurb: 'Runs a lookalike car the other way. Bay Patrol drops one wanted star.' },

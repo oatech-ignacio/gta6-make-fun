@@ -1,5 +1,5 @@
-// Pause menu shell: header with tabs (MAP, STORY, STATS, CREW, SETTINGS, CONTROLS, SAVE), the full Palmera Bay
-// map tab with a completion ring, summary and legend, and the resume / main menu buttons.
+// Job: the pause menu shell. Header with tabs (MAP, STORY, STATS, CREW, SETTINGS, CONTROLS, SAVE), the full
+// Palmera Bay map tab with a completion ring, summary and legend, and the resume / main menu buttons.
 import { game } from '../core/gameState.js';
 import { formatMoney, formatClock } from '../core/mathUtils.js';
 import { drawCityMap } from './minimap.js';

@@ -1,5 +1,6 @@
-// Garage panel: the car's stat bars (gold = stock, green = bought upgrades), paint swatches, repair, the three
-// upgrade tracks with level pips and prices, and the plate swap. Pure rendering; systems/garage.js owns the logic.
+// Job: render the garage panel. The car's stat bars (gold = stock, green = bought upgrades), paint swatches,
+// repair, the three upgrade tracks with level pips and prices, and the plate swap.
+// Pure rendering; systems/garage.js owns the logic.
 let el = null;
 const root = () => el || (el = document.getElementById('garage-panel'));
 const pct = (n) => (Math.max(0, Math.min(1, n)) * 100).toFixed(0);

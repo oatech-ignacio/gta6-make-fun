@@ -1,3 +1,4 @@
+/* In-game HUD styles: the overlay shown during play (money, stars, minimap, weapon bar, police, crew and race panels). */
 #hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; text-shadow: 0 2px 0 #000, 0 0 8px rgba(0,0,0,0.9); }
 
 /* ---------- top right: weapon, clock, money, stars ---------- */

@@ -1,3 +1,5 @@
+/* Full-screen menu styles: the start screen, the pause menu with its tabs, save slots and the garage panel. */
+
 /* ---------- start screen ---------- */
 #start-screen { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; justify-content: center; padding-left: 7vw;
   background: linear-gradient(90deg, rgba(10,4,22,0.9) 0%, rgba(10,4,22,0.55) 38%, rgba(10,4,22,0) 70%), linear-gradient(0deg, rgba(10,4,22,0.7), rgba(10,4,22,0) 40%); }

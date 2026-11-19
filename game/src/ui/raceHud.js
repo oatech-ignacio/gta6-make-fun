@@ -1,4 +1,5 @@
-// Race HUD (top centre while racing): race name, position, lap, checkpoint and the running time.
+// Job: draw the race HUD (top centre while racing): race name, position, lap, checkpoint and the running time.
+// Pure rendering; races/streetRaces.js owns the race state.
 import { getRaceStatus } from '../races/streetRaces.js';
 
 let el = null, lastHtml = '';

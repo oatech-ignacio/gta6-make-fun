@@ -1,4 +1,4 @@
-// The 5-star wanted level: crimes add heat, witnesses matter, stars rise with heat and
+// Job: track the 5-star wanted level. Crimes add heat, witnesses matter, stars rise with heat and
 // decay once no officer has had eyes on the player for long enough.
 import { game } from '../core/gameState.js';
 import { emitEvent } from '../core/eventBus.js';

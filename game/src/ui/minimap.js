@@ -1,5 +1,5 @@
-// Minimap and city map rendering: a pre-drawn base map of Palmera Bay (districts, roads, beach, causeway)
-// plus live blips for the player, missions, shops, police, enemies and the wanted search area.
+// Job: draw the minimap and the city map. A pre-drawn base map of Palmera Bay (districts, roads, beach,
+// causeway) plus live blips for the player, missions, shops, police, enemies and the wanted search area.
 import { game } from '../core/gameState.js';
 import { GRID_X, GRID_Z, ROAD_HALF, WORLD_BOUNDS, DISTRICTS, CAUSEWAY_Z, BEACH_X, listCityBlocks, PLACES, AVENUE_NAMES, STREET_NAMES } from '../world/cityLayout.js';
 import { getMarkers } from '../missions/missionMarkers.js';

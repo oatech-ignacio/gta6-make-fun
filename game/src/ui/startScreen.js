@@ -1,5 +1,5 @@
-// Title screen over the live city: CONTINUE / NEW GAME / LOAD GAME / SETTINGS / CONTROLS / STORY, with the
-// save slot list on the right and an animated sunset skyline behind the title lockup.
+// Job: the title screen over the live city. CONTINUE / NEW GAME / LOAD GAME / SETTINGS / CONTROLS / STORY, with
+// the save slot list on the right and an animated sunset skyline behind the title lockup.
 import { describeSave, latestSave } from '../systems/saveGame.js';
 import { renderSaveSlots } from './saveSlotList.js';
 import { settingsHtml, bindSettings } from './settingsForm.js';

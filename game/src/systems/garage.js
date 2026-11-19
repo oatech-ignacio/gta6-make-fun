@@ -1,5 +1,6 @@
-// Garages (Odette's Respray, Coral Strand Customs): drive in and press E for the garage menu. Resprays and
-// plate swaps shake an unseen wanted level; engine, armour and tyre upgrades stay with Dez and tune every car driven.
+// Job: run the garages (Odette's Respray, Coral Strand Customs). Drive in and press E for the garage menu.
+// Resprays and plate swaps shake an unseen wanted level; engine, armour and tyre upgrades stay with Dez and
+// tune every car driven.
 import { game } from '../core/gameState.js';
 import { wasKeyPressed } from '../core/input.js';
 import { setPrompt, playSound } from '../core/cues.js';

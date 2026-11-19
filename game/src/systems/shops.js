@@ -1,4 +1,5 @@
-// Interactive locations: Iron Pelican Arms (weapons), Odette's chop shop, the safehouse bed. Garages live in garage.js.
+// Job: run the interactive locations: Iron Pelican Arms (weapons), Odette's chop shop and the safehouse bed.
+// Garages live in garage.js.
 import { game } from '../core/gameState.js';
 import { wasKeyPressed } from '../core/input.js';
 import { PLACES } from '../world/cityLayout.js';

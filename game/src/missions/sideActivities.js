@@ -1,4 +1,5 @@
-// Side hustle: Sunfare taxi fares (press T in a cab). Street races live in races/streetRaces.js.
+// Job: run the Sunfare taxi-fare side hustle (press T in a cab): pick-ups, drop-offs and payouts.
+// Street races live in races/streetRaces.js.
 import { game } from '../core/gameState.js';
 import { isRaceActive } from '../races/streetRaces.js';
 import { wasKeyPressed } from '../core/input.js';

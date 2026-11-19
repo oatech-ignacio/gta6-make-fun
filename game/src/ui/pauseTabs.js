@@ -1,5 +1,5 @@
-// Content of the pause menu tabs other than the map: STORY, STATS, CREW, SETTINGS, CONTROLS and SAVE,
-// plus the "% complete" ring. Each builder returns HTML; `bind` hooks up anything interactive.
+// Job: build the content of the pause menu tabs other than the map: STORY, STATS, CREW, SETTINGS, CONTROLS
+// and SAVE, plus the "% complete" ring. Each builder returns HTML; `bind` hooks up anything interactive.
 import { game } from '../core/gameState.js';
 import { formatMoney } from '../core/mathUtils.js';
 import { getRespectRank, RESPECT_RANKS } from '../systems/economy.js';

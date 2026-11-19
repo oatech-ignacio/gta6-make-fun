@@ -1,5 +1,5 @@
-// Street races of Palmera Bay: where each one starts, its checkpoints (street intersections), laps, buy-in,
-// prize and par time, plus the three rival drivers who line up against the player.
+// Job: data for the street races of Palmera Bay. Where each one starts, its checkpoints (street intersections),
+// laps, buy-in, prize and par time, plus the three rival drivers who line up against the player. No race logic.
 import { GRID_X, GRID_Z, CAUSEWAY_Z, PLACES } from '../world/cityLayout.js';
 
 const EAST = Math.PI / 2, SOUTH = 0, CZ = CAUSEWAY_Z;

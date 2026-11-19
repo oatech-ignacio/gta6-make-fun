@@ -1,5 +1,5 @@
-// PALMERA HEAT bootstrap: builds the city, wires every system together, runs the frame update,
-// and switches between the title screen, gameplay, the pause map and screenshot mode.
+// Job: PALMERA HEAT bootstrap. Builds the city, wires every system together, runs the per-frame
+// update, and switches between the title screen, gameplay, the pause map and screenshot mode.
 import { game, resetProgress } from './gameState.js';
 import { createSeededRandom } from './rng.js';
 import { initInput, wasKeyPressed, endInputFrame, setPointerLockEnabled, requestPointerLock, releasePointerLock } from './input.js';

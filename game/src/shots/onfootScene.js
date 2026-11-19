@@ -1,5 +1,5 @@
-// On-foot scene: midday shoot-out on Neon Row. Dez against the Brine Kings in the street, a crowd running
-// along both sidewalks, traffic stopped behind him and Bay Patrol rolling in with officers on foot.
+// Job: stage the `onfoot` screenshot. Midday shoot-out on Neon Row: Dez against the Brine Kings in the street,
+// a crowd running along both sidewalks, traffic stopped behind him and Bay Patrol rolling in with officers on foot.
 import * as THREE from 'three';
 import { game } from '../core/gameState.js';
 import { cameraRig } from '../render/followCamera.js';

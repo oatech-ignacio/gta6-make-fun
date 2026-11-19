@@ -1,4 +1,5 @@
-// The single shared game state object: every system reads and writes this instead of globals.
+// Job: hold the single shared game state object.
+// Every system reads and writes this instead of globals; no logic lives here.
 export const game = {
   mode: 'boot',            // 'menu' | 'play' | 'shot'
   paused: false,

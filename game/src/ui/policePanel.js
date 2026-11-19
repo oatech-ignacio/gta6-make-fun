@@ -1,5 +1,5 @@
-// Police response panel: while wanted, lists the nearest responding units (callsign, distance, status chip)
-// and drives the IN SIGHT / SEARCHING chip beside the wanted stars from the real search timer.
+// Job: draw the police response panel. While wanted, lists the nearest responding units (callsign, distance,
+// status chip) and drives the IN SIGHT / SEARCHING chip beside the wanted stars from the real search timer.
 import { game } from '../core/gameState.js';
 import { getHeadlineUnits } from '../police/policeUnits.js';
 import { getSightStatus } from '../systems/wantedLevel.js';

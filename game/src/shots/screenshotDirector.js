@@ -1,5 +1,6 @@
-// Deterministic screenshot mode (index.html?shot=<name>&seed=1): stages real gameplay moments with the
-// game's own systems (vehicles, police, pedestrians, missions, races, HUD), fast-forwards the simulation and renders.
+// Job: direct the deterministic screenshot mode (index.html?shot=<name>&seed=1). Picks the scene, stages a real
+// gameplay moment with the game's own systems (vehicles, police, pedestrians, missions, races, HUD),
+// fast-forwards the simulation and renders.
 import { game } from '../core/gameState.js';
 import { applyTimeOfDay } from '../world/dayNightCycle.js';
 import { trafficConfig } from '../vehicles/trafficAI.js';

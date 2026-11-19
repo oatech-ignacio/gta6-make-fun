@@ -1,4 +1,5 @@
-// 3D objective markers (glowing ring + light beam) that double as minimap / pause-map blips.
+// Job: create, animate and remove the 3D objective markers (glowing ring + light beam)
+// that double as minimap / pause-map blips.
 import * as THREE from 'three';
 import { game } from '../core/gameState.js';
 import { groundHeightAt } from '../world/cityLayout.js';

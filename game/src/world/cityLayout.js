@@ -1,4 +1,5 @@
-// Static description of Palmera Bay: the street grid, districts, land outline and named places.
+// Job: the static description of Palmera Bay: the street grid, districts, land outline and named places,
+// plus the small lookups (district, ground height) other modules ask of it.
 import { clamp } from '../core/mathUtils.js';
 
 export const GRID_X = [-432, -336, -240, -144, -48, 48, 144, 240, 336, 432];   // north-south avenues

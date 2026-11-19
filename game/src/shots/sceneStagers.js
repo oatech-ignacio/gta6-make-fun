@@ -1,4 +1,5 @@
-// Live entity staging helpers; traffic, pedestrians and pursuit use the normal game brains.
+// Job: shared helpers that place live entities for the screenshot scenes.
+// The staged traffic, pedestrians and pursuit units run on the normal game brains.
 import { game } from '../core/gameState.js';
 import { GRID_X, GRID_Z } from '../world/cityLayout.js';
 import { spawnVehicle } from '../vehicles/vehiclePhysics.js';

@@ -1,5 +1,5 @@
-// Crew panel (right side of the HUD): one row per recruited ally with the ability hotkey, name, role and a
-// READY / cooldown chip driven by the real cooldown timers.
+// Job: draw the crew panel (right side of the HUD). One row per recruited ally with the ability hotkey, name,
+// role and a READY / cooldown chip driven by the real cooldown timers.
 import { getCrewStatus } from '../crew/crewAbilities.js';
 
 let panel = null, lastHtml = '';

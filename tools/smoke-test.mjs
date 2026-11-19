@@ -1,4 +1,4 @@
-// Headless gameplay smoke test: starts a new game, walks, steals a car, drives, shoots, raises a wanted
+// Job: headless gameplay smoke test. Starts a new game, walks, steals a car, drives, shoots, raises a wanted
 // level, runs the first mission steps and opens the pause map, fast-forwarding the simulation; fails on any error.
 //   node tools/smoke-test.mjs
 import { createServer } from 'node:http';

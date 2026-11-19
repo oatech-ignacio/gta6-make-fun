@@ -1,5 +1,6 @@
-// Cover scene: morning golden hour on Corsair Boulevard. A stolen Marlin RS runs north along the beach with
-// four stars, Bay Patrol cruisers, a Bulwark van and Air One behind it, through rush-hour traffic.
+// Job: stage the `chase` cover screenshot. Morning golden hour on Corsair Boulevard: a stolen Marlin RS runs
+// north along the beach with four stars, Bay Patrol cruisers, a Bulwark van and Air One behind it, through
+// rush-hour traffic.
 import * as THREE from 'three';
 import { game } from '../core/gameState.js';
 import { cameraRig } from '../render/followCamera.js';

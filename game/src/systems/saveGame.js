@@ -1,4 +1,4 @@
-// Save / load to localStorage: three manual slots plus an autosave slot. Each save holds progress, money,
+// Job: save / load to localStorage. Three manual slots plus an autosave slot; each save holds progress, money,
 // respect, weapons, stats, districts visited, crew met, position and time of day, with a summary for menus.
 import { game, newGarage } from '../core/gameState.js';
 import { onEvent } from '../core/eventBus.js';
