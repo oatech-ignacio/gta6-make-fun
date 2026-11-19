@@ -20,7 +20,7 @@ import { npcShootAt } from '../combat/weaponFire.js';
 import { hasLineOfSight } from '../world/collisionGrid.js';
 import { spawnPickup, removePickup } from '../systems/pickups.js';
 import { formatMoney } from '../core/mathUtils.js';
-import { playSound } from '../audio/soundEffects.js';
+import { playSound } from '../core/cues.js';
 
 let startMarker = null, startMarkerIndex = -1, bannerTimer = 0, giverNpc = null;
 

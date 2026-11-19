@@ -2,7 +2,8 @@
 // engine fire and explosions. Everything is sprites or thin boxes, generated in code.
 import * as THREE from 'three';
 import { game } from '../core/gameState.js';
-import { getGlowTexture } from '../world/roadTextures.js';
+import { getGlowTexture } from '../world/glowTexture.js';
+import { onEvent } from '../core/eventBus.js';
 
 const POOL = 240, TRACERS = 28;
 const particles = [], tracers = [];
@@ -36,6 +37,8 @@ export function initVisualEffects(scene) {
   }
   flashLight = new THREE.PointLight(0xffc070, 0, 22, 1.6); blastLight = new THREE.PointLight(0xff8030, 0, 70, 1.4);
   scene.add(flashLight, blastLight);
+  const EFFECTS = { muzzleFlash: spawnMuzzleFlash, tracer: spawnTracer, sparks: spawnSparks, blood: spawnBlood, smoke: spawnSmoke, tyreSmoke: spawnTyreSmoke, explosion: spawnExplosion, cashBurst: spawnCashBurst };
+  onEvent('cue:effect', (e) => EFFECTS[e.kind](...e.args));
 }
 
 function emit(x, y, z, o) {

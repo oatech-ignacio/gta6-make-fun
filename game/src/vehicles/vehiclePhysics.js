@@ -5,14 +5,14 @@ import { game } from '../core/gameState.js';
 import { clamp, damp, wrapAngle } from '../core/mathUtils.js';
 import { emitEvent } from '../core/eventBus.js';
 import { getVehicleSpec } from './vehicleCatalog.js';
-import { createVehicleMesh, animateLightBar } from './vehicleMeshFactory.js';
 import { resolveCircleAgainstStatics } from '../world/collisionGrid.js';
 import { constrainToLand, groundHeightAt } from '../world/cityLayout.js';
-import { lighting } from '../world/dayNightCycle.js';
-import { spawnSmoke, spawnSparks, spawnExplosion, spawnTyreSmoke } from '../combat/visualEffects.js';
-import { playSound } from '../audio/soundEffects.js';
+import { playSound, spawnEffect } from '../core/cues.js';
 
 let nextVehicleId = 1;
+let createVehicleMesh = null, animateLightBar = null;
+/** The renderer side plugs in the model builder and light-bar animator (see vehicleMeshFactory.js). */
+export function registerVehicleMeshFactory(create, animateBar) { createVehicleMesh = create; animateLightBar = animateBar; }
 const probe = { x: 0, z: 0 };
 
 export function spawnVehicle(typeKey, x, z, heading = 0, options = {}) {
@@ -61,7 +61,7 @@ export function damageVehicle(v, amount, source) {
 export function explodeVehicle(v) {
   if (v.wrecked) return;
   v.wrecked = true; v.health = 0; v.burning = 0; v.siren = false;
-  spawnExplosion(v.pos.x, 1.2, v.pos.z);
+  spawnEffect('explosion', v.pos.x, 1.2, v.pos.z);
   playSound('explosion', v.pos);
   game.cameraShake = Math.max(game.cameraShake, clamp(1.6 - v.pos.distanceTo(game.player.pos) / 40, 0, 1.4));
   v.mesh.userData.tilt.children[0].material = wreckMaterial;
@@ -96,7 +96,7 @@ function onImpact(v, impact, x, z) {
   if (game.time - v.lastHitTime < 0.25) return;
   v.lastHitTime = game.time;
   damageVehicle(v, (impact - 5) * 0.9);
-  spawnSparks(x, 0.7, z, 6);
+  spawnEffect('sparks', x, 0.7, z, 6);
   playSound('crash', v.pos, clamp(impact / 30, 0.2, 1));
   if (v.driver === game.player) game.cameraShake = Math.max(game.cameraShake, clamp(impact / 60, 0.1, 0.6));
 }
@@ -127,7 +127,7 @@ function collideVehiclePair(a, b) {
       if (impact > 5 && game.time - a.lastHitTime > 0.25) {
         a.lastHitTime = b.lastHitTime = game.time;
         damageVehicle(a, (impact - 4) * 0.8 * (mb / total) * 2, b.driver); damageVehicle(b, (impact - 4) * 0.8 * (ma / total) * 2, a.driver);
-        spawnSparks((ax + bx) / 2, 0.8, (az + bz) / 2, 8);
+        spawnEffect('sparks', (ax + bx) / 2, 0.8, (az + bz) / 2, 8);
         playSound('crash', a.pos, clamp(impact / 30, 0.2, 1));
         if (a.driver === game.player || b.driver === game.player) game.cameraShake = Math.max(game.cameraShake, clamp(impact / 50, 0.1, 0.7));
         emitEvent('vehicleCollision', { a, b, impact });
@@ -178,13 +178,13 @@ export function updateVehiclePhysics(v, dt) {
   // 4. damage states
   if (v.burning > 0 && !v.wrecked) {
     v.burning -= dt;
-    if (Math.random() < dt * 14) spawnSmoke(v.pos.x + fx * v.halfLen * 0.6, 1.2, v.pos.z + fz * v.halfLen * 0.6, true);
+    if (Math.random() < dt * 14) spawnEffect('smoke', v.pos.x + fx * v.halfLen * 0.6, 1.2, v.pos.z + fz * v.halfLen * 0.6, true);
     if (v.burning <= 0) explodeVehicle(v);
   } else if (v.health < 45 && !v.wrecked && Math.random() < dt * (v.health < 22 ? 9 : 4)) {
-    spawnSmoke(v.pos.x + fx * v.halfLen * 0.7, 1.0, v.pos.z + fz * v.halfLen * 0.7, false, v.health < 22);
+    spawnEffect('smoke', v.pos.x + fx * v.halfLen * 0.7, 1.0, v.pos.z + fz * v.halfLen * 0.7, false, v.health < 22);
   }
   if (v.drifting && Math.random() < dt * 30) {
-    spawnTyreSmoke(v.pos.x - fx * v.halfLen * 0.6, 0.25, v.pos.z - fz * v.halfLen * 0.6);
+    spawnEffect('tyreSmoke', v.pos.x - fx * v.halfLen * 0.6, 0.25, v.pos.z - fz * v.halfLen * 0.6);
   }
   // 5. visuals
   const m = v.mesh, ud = m.userData;
@@ -195,9 +195,9 @@ export function updateVehiclePhysics(v, dt) {
   else { ud.tilt.rotation.z = v.roll; ud.tilt.rotation.x = v.pitch; }
   const spin = fwd * dt / 0.36;
   for (let i = 0; i < ud.wheels.length; i++) { const w = ud.wheels[i]; w.rotation.x += spin; if (i < 2 && ud.wheels.length === 4) w.rotation.y = v.steerVisual * 0.45; }
-  const lightsWanted = !v.wrecked && (v.driver || v.ai) && (lighting.nightFactor > 0.1 || v.isPolice);
-  ud.headGlow.visible = !!lightsWanted && lighting.nightFactor > 0.08;
-  ud.brakeGlow.visible = !v.wrecked && !!(v.driver || v.ai) && (c.brake > 0.2 || (throttle < 0 && fwd > 1) || c.handbrake || lighting.nightFactor > 0.3);
+  const lightsWanted = !v.wrecked && (v.driver || v.ai) && (game.nightFactor > 0.1 || v.isPolice);
+  ud.headGlow.visible = !!lightsWanted && game.nightFactor > 0.08;
+  ud.brakeGlow.visible = !v.wrecked && !!(v.driver || v.ai) && (c.brake > 0.2 || (throttle < 0 && fwd > 1) || c.handbrake || game.nightFactor > 0.3);
   if (ud.lightBar) animateLightBar(m, game.time + v.sirenPhase, v.siren && !v.wrecked);
 }
 

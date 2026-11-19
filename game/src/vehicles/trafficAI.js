@@ -5,7 +5,7 @@ import { clamp, angleDiff, distSq2d } from '../core/mathUtils.js';
 import { onEvent } from '../core/eventBus.js';
 import { getLaneLine, pickNextNode, randomTrafficEdge, nearestNode } from '../world/roadNetwork.js';
 import { ROAD_HALF, LANE_OFFSETS } from '../world/cityLayout.js';
-import { getSignalState } from './trafficLights.js';
+import { getSignalState } from './trafficSignalTiming.js';
 import { spawnVehicle, removeVehicle, isVehicleAt } from './vehiclePhysics.js';
 import { pickTrafficType } from './vehicleCatalog.js';
 

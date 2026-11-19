@@ -7,8 +7,7 @@ import { clearWantedLevel } from './wantedLevel.js';
 import { showBigBanner, hideBigBanner, setScreenFade } from '../ui/hud.js';
 import { showNotification } from '../ui/notifications.js';
 import { formatMoney } from '../core/mathUtils.js';
-import { playSound } from '../audio/soundEffects.js';
-import { setTimeOfDay } from '../world/dayNightCycle.js';
+import { playSound } from '../core/cues.js';
 import { populateTrafficAround } from '../vehicles/trafficAI.js';
 import { WEAPON_ORDER } from '../combat/weaponCatalog.js';
 
@@ -40,7 +39,7 @@ function respawn() {
   const fee = Math.min(kind === 'wasted' ? 600 : 900, Math.floor(game.money * (kind === 'wasted' ? 0.1 : 0.15)));
   game.money -= fee;
   if (kind === 'busted') { for (const k of WEAPON_ORDER) if (k !== 'fists') { delete game.weapons[k]; delete game.ammo[k]; } game.currentWeapon = 'fists'; }
-  setTimeOfDay((game.timeOfDay + 4) % 24);
+  emitEvent('advanceClock', 4);
   populateTrafficAround(place.x, place.z, 8, 30, 160);
   showNotification(kind === 'wasted'
     ? `<b>SANTA BRISA MEDICAL</b>Stitched up and billed ${formatMoney(fee)}.`

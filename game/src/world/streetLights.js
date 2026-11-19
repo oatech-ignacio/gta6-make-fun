@@ -1,7 +1,7 @@
 // Street lamps along every road: instanced poles, lamp heads, additive glow sprites and light pools on the asphalt.
 import * as THREE from 'three';
 import { GeometryBatch } from './geometryBatcher.js';
-import { getGlowTexture } from './roadTextures.js';
+import { getGlowTexture } from './glowTexture.js';
 import { ROAD_HALF } from './cityLayout.js';
 
 const POLE_HEIGHT = 8.2, ARM = 2.8;

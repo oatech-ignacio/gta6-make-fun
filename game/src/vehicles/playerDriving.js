@@ -1,7 +1,7 @@
 // Player vehicle controls: WASD throttle/steer, Space handbrake (drift), H horn, plus driving stats and crimes.
 import { game } from '../core/gameState.js';
 import { isKeyDown, wasKeyPressed, moveAxis } from '../core/input.js';
-import { playSound } from '../audio/soundEffects.js';
+import { playSound } from '../core/cues.js';
 import { reportCrime } from '../systems/wantedLevel.js';
 import { emitEvent } from '../core/eventBus.js';
 

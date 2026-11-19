@@ -91,16 +91,3 @@ export function createConcreteTexture() {
   ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 2; ctx.strokeRect(1, 1, S - 2, S - 2);
   return toTexture(c);
 }
-
-/** Soft radial glow sprite used for lamps, sirens, headlights and muzzle flashes. */
-export function createGlowTexture() {
-  const S = 128, c = makeCanvas(S, S), ctx = c.getContext('2d');
-  const g = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
-  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.18, 'rgba(255,255,255,0.75)');
-  g.addColorStop(0.45, 'rgba(255,255,255,0.22)'); g.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
-}
-
-let sharedGlow = null;
-export function getGlowTexture() { if (!sharedGlow) sharedGlow = createGlowTexture(); return sharedGlow; }

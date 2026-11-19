@@ -1,8 +1,9 @@
 // Story dialogue box: speaker portrait, name and role, line-by-line playback (Enter skips ahead).
 import { wasKeyPressed } from '../core/input.js';
 import { getCastMember } from '../missions/storyCharacters.js';
-import { CHARACTER_LOOKS, drawCharacterPortrait } from '../characters/characterMeshFactory.js';
-import { playSound } from '../audio/soundEffects.js';
+import { CHARACTER_LOOKS } from '../characters/characterLooks.js';
+import { drawCharacterPortrait } from './characterPortraits.js';
+import { playSound } from '../core/cues.js';
 import { game } from '../core/gameState.js';
 
 const state = { lines: null, index: 0, timer: 0, onDone: null };

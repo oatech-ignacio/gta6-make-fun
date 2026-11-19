@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { game } from '../core/gameState.js';
 import { lerp, clamp } from '../core/mathUtils.js';
+import { onEvent } from '../core/eventBus.js';
 import { setStreetLightLevel } from './streetLights.js';
 import { setNeonSignBrightness } from './neonSigns.js';
 import { updateOcean } from './ocean.js';
@@ -38,6 +39,7 @@ export function initDayNight(scene, refs) {
   scene.fog = new THREE.FogExp2(0xffffff, 0.0011);
   env.fog = scene.fog;
   Object.assign(env, refs);
+  onEvent('advanceClock', (hours) => setTimeOfDay((game.timeOfDay + hours) % 24));
   applyTimeOfDay(game.timeOfDay);
 }
 
@@ -52,7 +54,7 @@ export function applyTimeOfDay(hour) {
   mixHex(a[3], b[3], t, lighting.sunColor); u.sunColor.value.copy(lighting.sunColor);
   mixHex(a[11], b[11], t, u.cloudColor.value);
   const night = lerp(a[9], b[9], t);
-  lighting.nightFactor = night; lighting.exposure = lerp(a[10], b[10], t);
+  lighting.nightFactor = night; game.nightFactor = night; lighting.exposure = lerp(a[10], b[10], t);
   u.starAmount.value = Math.max(0, night - 0.5) * 2;
   // sun path: rises over the ocean (east, +x), sets behind the suburbs, tilted toward the south
   const dayT = (hour - 6) / 14.2, ang = dayT * Math.PI;

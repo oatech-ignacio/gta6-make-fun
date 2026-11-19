@@ -8,7 +8,7 @@ import { addMoney, addRespect, getRespectRank, spendMoney } from '../systems/eco
 import { setObjective, setMissionTimer, setMissionName, setPrompt, showBigBanner } from '../ui/hud.js';
 import { showNotification } from '../ui/notifications.js';
 import { formatMoney } from '../core/mathUtils.js';
-import { playSound } from '../audio/soundEffects.js';
+import { playSound } from '../core/cues.js';
 
 const taxi = { active: false, phase: 'idle', passenger: null, marker: null, timer: 0, fareDistance: 0, streak: 0 };
 const race = { active: false, index: 0, marker: null, time: 0, startMarker: null, best: null };

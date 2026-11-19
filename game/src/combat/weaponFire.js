@@ -8,11 +8,9 @@ import { WEAPONS, selectWeapon, cycleWeapon, reloadWeapon } from './weaponCatalo
 import { damageCharacter } from './damageSystem.js';
 import { damageVehicle } from '../vehicles/vehiclePhysics.js';
 import { raycastStatics } from '../world/collisionGrid.js';
-import { spawnMuzzleFlash, spawnTracer, spawnSparks, spawnBlood } from './visualEffects.js';
 import { knockDownCharacter } from '../characters/characterEntity.js';
-import { playSound } from '../audio/soundEffects.js';
+import { playSound, spawnEffect, flashCrosshair } from '../core/cues.js';
 import { reportCrime } from '../systems/wantedLevel.js';
-import { flashCrosshair } from '../ui/hud.js';
 
 const camDir = new THREE.Vector3();
 let reloadTimer = 0;
@@ -56,20 +54,20 @@ export function fireWeapon(shooter, weaponKey, dir, accuracy = 1) {
   for (let p = 0; p < pellets; p++) {
     const dx = dir.x + (Math.random() - 0.5) * 2 * spread, dy = dir.y + (Math.random() - 0.5) * 2 * spread, dz = dir.z + (Math.random() - 0.5) * 2 * spread;
     const hit = castBullet(shooter, ox, oy, oz, dx, dy, dz, w.range);
-    spawnTracer(ox, oy, oz, hit.x, hit.y, hit.z);
+    spawnEffect('tracer', ox, oy, oz, hit.x, hit.y, hit.z);
     if (hit.character) {
       anyHit = true;
-      spawnBlood(hit.x, hit.y, hit.z);
+      spawnEffect('blood', hit.x, hit.y, hit.z);
       damageCharacter(hit.character, w.damage * (shooter === game.player ? 1 : 0.5), shooter, 'bullet');
     } else if (hit.vehicle) {
       anyHit = true;
-      spawnSparks(hit.x, Math.max(0.5, hit.y), hit.z, 4);
+      spawnEffect('sparks', hit.x, Math.max(0.5, hit.y), hit.z, 4);
       damageVehicle(hit.vehicle, w.damage * 0.3, shooter);
       if (shooter === game.player && hit.vehicle.isPolice) reportCrime('shootCop', hit.vehicle.pos);
       if (hit.vehicle.driver && hit.vehicle.driver !== shooter && Math.random() < 0.25) damageCharacter(hit.vehicle.driver, w.damage * 0.5, shooter, 'bullet');
-    } else if (hit.distance < w.range - 0.5) spawnSparks(hit.x, hit.y, hit.z, 3);
+    } else if (hit.distance < w.range - 0.5) spawnEffect('sparks', hit.x, hit.y, hit.z, 3);
   }
-  spawnMuzzleFlash(ox + dir.x * 0.35, oy, oz + dir.z * 0.35, weaponKey === 'shotgun' ? 1.5 : 1);
+  spawnEffect('muzzleFlash', ox + dir.x * 0.35, oy, oz + dir.z * 0.35, weaponKey === 'shotgun' ? 1.5 : 1);
   shooter.fireAnim = 0.45; shooter.recoil = 1;
   playSound(w.sound, from);
   emitEvent('gunfire', { x: from.x, z: from.z, shooter });

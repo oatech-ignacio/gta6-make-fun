@@ -8,7 +8,7 @@ import { isOnLand } from '../world/cityLayout.js';
 import { spawnCharacter, knockDownCharacter, randomCivilianLook } from '../characters/characterEntity.js';
 import { reportCrime } from '../systems/wantedLevel.js';
 import { emitEvent } from '../core/eventBus.js';
-import { playSound } from '../audio/soundEffects.js';
+import { playSound } from '../core/cues.js';
 import { snapCameraBehind, cameraRig } from '../render/followCamera.js';
 import { showNotification } from '../ui/notifications.js';
 import { damageCharacter } from '../combat/damageSystem.js';

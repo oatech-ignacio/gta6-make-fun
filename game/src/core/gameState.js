@@ -4,6 +4,7 @@ export const game = {
   paused: false,
   time: 0, dt: 0, frame: 0,
   timeOfDay: 17.4,         // hours, 0..24
+  nightFactor: 0,          // 0 = day, 1 = night (set by the day/night cycle)
   timeScale: 1,
   seed: 1,
   rng: null,

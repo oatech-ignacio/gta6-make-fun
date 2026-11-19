@@ -2,14 +2,13 @@
 import * as THREE from 'three';
 import { game } from '../core/gameState.js';
 import { GeometryBatch } from '../world/geometryBatcher.js';
-import { getGlowTexture } from '../world/roadTextures.js';
+import { getGlowTexture } from '../world/glowTexture.js';
 import { groundHeightAt } from '../world/cityLayout.js';
 import { addMoney } from './economy.js';
 import { giveWeapon, WEAPONS } from '../combat/weaponCatalog.js';
 import { showNotification } from '../ui/notifications.js';
-import { playSound } from '../audio/soundEffects.js';
-import { spawnCashBurst } from '../combat/visualEffects.js';
-import { emitEvent } from '../core/eventBus.js';
+import { playSound, spawnEffect } from '../core/cues.js';
+import { emitEvent, onEvent } from '../core/eventBus.js';
 
 const pickups = [];
 const geometryCache = {};
@@ -52,6 +51,9 @@ export function spawnPickup(type, x, z, options = {}) {
   return pickup;
 }
 
+// loot dropped by the damage system (cash from pedestrians, ammo from officers)
+onEvent('dropLoot', (e) => spawnPickup(e.type, e.x, e.z, e.options));
+
 export function removePickup(p) {
   const i = pickups.indexOf(p);
   if (i >= 0) pickups.splice(i, 1);
@@ -60,7 +62,7 @@ export function removePickup(p) {
 
 function collect(p) {
   const player = game.player, o = p.options;
-  if (p.type === 'cash') { addMoney(o.amount || 50, 'pickup'); spawnCashBurst(p.x, 0.6, p.z); playSound('cash', player.pos); }
+  if (p.type === 'cash') { addMoney(o.amount || 50, 'pickup'); spawnEffect('cashBurst', p.x, 0.6, p.z); playSound('cash', player.pos); }
   else if (p.type === 'health') { if (player.health >= player.maxHealth) return false; player.health = player.maxHealth; playSound('pickup', player.pos); showNotification('Patched up.', '', 2); }
   else if (p.type === 'armor') { if (player.armor >= 100) return false; player.armor = 100; playSound('pickup', player.pos); showNotification('Body armour on.', '', 2); }
   else if (p.type === 'ammo') {

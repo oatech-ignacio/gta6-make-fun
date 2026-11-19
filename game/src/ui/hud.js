@@ -7,7 +7,6 @@ import { getDistrictAt, nearestStreetName } from '../world/cityLayout.js';
 import { WEAPONS, WEAPON_ICONS } from '../combat/weaponCatalog.js';
 import { getRespectRank } from '../systems/economy.js';
 import { UNITS_TO_MPH } from '../vehicles/vehicleCatalog.js';
-import { drawMinimap } from './minimap.js';
 import { cameraRig } from '../render/followCamera.js';
 
 const el = {};
@@ -24,6 +23,8 @@ export function initHud() {
   onEvent('moneyChanged', (e) => { moneyFlash = e.amount < 0 ? -1.2 : 1.2; });
   onEvent('playerHurt', (e) => { hurtFlash = Math.min(1, hurtFlash + 0.35 + e.amount / 60); });
   onEvent('radioChanged', (e) => setRadioBanner(e.name, e.track, 5));
+  onEvent('cue:prompt', (e) => setPrompt(e.channel, e.html));
+  onEvent('cue:hit', flashCrosshair);
 }
 
 export function setHudVisible(on) { el.hud.classList.toggle('hidden', !on); }
@@ -122,5 +123,4 @@ export function updateHud(dt) {
   el.crosshair.classList.toggle('hit', crosshairHit > 0);
   if (titleTimer > 0) { titleTimer -= dt; if (titleTimer <= 0) el['title-card'].classList.add('hidden'); }
   if (radioTimer > 0 && game.mode !== 'shot') { radioTimer -= dt; if (radioTimer <= 0) el['radio-banner'].classList.add('hidden'); }
-  drawMinimap(el.minimap);
 }

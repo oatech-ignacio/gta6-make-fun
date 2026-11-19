@@ -3,10 +3,11 @@
 import * as THREE from 'three';
 import { game } from '../core/gameState.js';
 import { damp } from '../core/mathUtils.js';
+import { onEvent } from '../core/eventBus.js';
 import { GeometryBatch } from '../world/geometryBatcher.js';
-import { getGlowTexture } from '../world/roadTextures.js';
+import { getGlowTexture } from '../world/glowTexture.js';
 import { npcShootAt } from '../combat/weaponFire.js';
-import { playSound } from '../audio/soundEffects.js';
+import { playSound } from '../core/cues.js';
 
 const heli = { active: false, leaving: false, seesPlayer: false, mesh: null, rotor: null, tail: null, beam: null, spot: null, angle: 0, pos: new THREE.Vector3(), gunner: null, chatter: 0 };
 
@@ -55,6 +56,12 @@ export function requestHelicopter(instantAt = null) {
 }
 
 export function dismissHelicopter() { if (heli.active) heli.leaving = true; }
+
+/** Dispatch calls the helicopter in at four stars and sends it home when the wanted level clears. */
+export function initPoliceHelicopter() {
+  onEvent('helicopterRequested', () => requestHelicopter());
+  onEvent('helicopterDismissed', dismissHelicopter);
+}
 
 export function updatePoliceHelicopter(dt) {
   if (!heli.active) return;

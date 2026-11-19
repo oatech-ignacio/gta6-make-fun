@@ -7,7 +7,7 @@ import { cameraRig, snapCameraBehind } from '../render/followCamera.js';
 import { handleEnterExitKey, findEnterableVehicle } from '../vehicles/vehicleEntry.js';
 import { updatePlayerDriving } from '../vehicles/playerDriving.js';
 import { updatePlayerCombat } from '../combat/weaponFire.js';
-import { setPrompt } from '../ui/hud.js';
+import { setPrompt } from '../core/cues.js';
 
 const WALK = 2.3, JOG = 4.7, SPRINT = 7.6;
 

@@ -2,17 +2,16 @@
 // when roadblocks and the helicopter are called in, and standing units down when the heat is off.
 import { game } from '../core/gameState.js';
 import { distSq2d } from '../core/mathUtils.js';
-import { onEvent } from '../core/eventBus.js';
+import { onEvent, emitEvent } from '../core/eventBus.js';
 import { findNodePath, nearestNode } from '../world/roadNetwork.js';
 import { spawnVehicle, removeVehicle, isVehicleAt } from '../vehicles/vehiclePhysics.js';
 import { assignTrafficRoute } from '../vehicles/trafficAI.js';
 import { updatePoliceCruiser, createPursuitBrain } from './policeCruiserAI.js';
 import { updatePoliceOfficer } from './policeOfficerAI.js';
 import { trySpawnRoadblock, updateRoadblocks } from './roadblocks.js';
-import { updatePoliceHelicopter, requestHelicopter, dismissHelicopter } from './policeHelicopter.js';
 import { removeCharacter } from '../characters/characterEntity.js';
 import { reportCrime } from '../systems/wantedLevel.js';
-import { playSound } from '../audio/soundEffects.js';
+import { playSound } from '../core/cues.js';
 
 export const UNITS_PER_STAR = [0, 1, 2, 3, 4, 6];
 let dispatchCooldown = 0, roadblockCooldown = 12;
@@ -68,7 +67,7 @@ function standDownAllUnits() {
     }
   }
   for (const c of game.characters) if (c.kind === 'cop') { c.hostile = false; c.aiming = false; c.standDown = 20; }
-  dismissHelicopter();
+  emitEvent('helicopterDismissed');
 }
 
 function recruitPatrolCars() {
@@ -86,7 +85,7 @@ export function updatePoliceDispatch(dt) {
     if (countPursuitUnits() < UNITS_PER_STAR[stars] && dispatchCooldown <= 0) { spawnPoliceUnit(); dispatchCooldown = 3.2 - stars * 0.35; }
     const pv = game.player.vehicle;
     if (stars >= 3 && pv && Math.abs(pv.speed) > 14 && roadblockCooldown <= 0) { if (trySpawnRoadblock()) roadblockCooldown = 26 - stars * 2; else roadblockCooldown = 3; }
-    if (stars >= 4) requestHelicopter();
+    if (stars >= 4) emitEvent('helicopterRequested');
   }
   // update every unit, and clean up the ones left far behind
   for (let i = game.vehicles.length - 1; i >= 0; i--) {
@@ -106,5 +105,4 @@ export function updatePoliceDispatch(dt) {
     updatePoliceOfficer(c, dt);
   }
   updateRoadblocks(dt);
-  updatePoliceHelicopter(dt);
 }

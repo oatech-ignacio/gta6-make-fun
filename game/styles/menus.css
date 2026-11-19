@@ -1,7 +1,7 @@
 /* ---------- start screen ---------- */
 #start-screen { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; justify-content: center; padding-left: 7vw;
   background: linear-gradient(90deg, rgba(10,4,22,0.9) 0%, rgba(10,4,22,0.55) 38%, rgba(10,4,22,0) 70%), linear-gradient(0deg, rgba(10,4,22,0.7), rgba(10,4,22,0) 40%); }
-.logo { font-family: var(--display); font-style: italic; line-height: 0.86; letter-spacing: 0.01em; transform: skewY(-4deg); margin-bottom: 4vh; }
+.logo { font-family: var(--display); font-style: italic; line-height: 0.86; letter-spacing: 0.01em; transform: skewY(-4deg); margin-bottom: 7vh; }
 .logo .l1 { font-size: 15vh; background: linear-gradient(180deg, #fff6c2 5%, #ffc24a 45%, #ff5a3d 95%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 5px 0 #24062c) drop-shadow(0 0 26px rgba(255,120,60,0.55)); display: block; }
 .logo .l2 { font-size: 19vh; background: linear-gradient(180deg, #ff9ad0 5%, #ff3d8b 50%, #7a2bff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 5px 0 #14062c) drop-shadow(0 0 30px rgba(255,61,139,0.65)); display: block; padding-right: 2vw; }
 .logo .tag { font-family: var(--ui); font-style: normal; font-size: 2.5vh; letter-spacing: 0.42em; color: var(--teal); display: block; margin-top: 2.4vh; text-shadow: 0 2px 0 #000; }

@@ -10,10 +10,10 @@ import { createMarker } from '../missions/missionMarkers.js';
 import { setPrompt } from '../ui/hud.js';
 import { showNotification } from '../ui/notifications.js';
 import { formatMoney } from '../core/mathUtils.js';
-import { playSound } from '../audio/soundEffects.js';
+import { playSound } from '../core/cues.js';
 import { removeVehicle, repaintVehicle } from '../vehicles/vehiclePhysics.js';
 import { leaveVehicle } from '../vehicles/vehicleEntry.js';
-import { setTimeOfDay } from '../world/dayNightCycle.js';
+import { emitEvent } from '../core/eventBus.js';
 
 let menuOpen = false;
 const menuEl = () => document.getElementById('shop-menu');
@@ -98,7 +98,7 @@ export function updateShops(dt) {
   } else if (!v && near(PLACES.safehouse, 2.2)) {
     prompt = game.wanted.stars ? 'Lose the cops before you lie low' : game.activeMission ? 'Finish the job before you rest' : '<kbd>E</kbd>Rest and save at the Sol y Sombra';
     if (!game.wanted.stars && !game.activeMission && wasKeyPressed('KeyE')) {
-      player.health = player.maxHealth; setTimeOfDay((game.timeOfDay + 7) % 24); saveGame();
+      player.health = player.maxHealth; emitEvent('advanceClock', 7); saveGame();
       showNotification('<b>GAME SAVED</b>Slept it off at the Sol y Sombra Motel.', 'gold', 4); playSound('pickup', player.pos);
     }
   }

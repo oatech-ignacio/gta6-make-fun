@@ -3,15 +3,18 @@
 import * as THREE from 'three';
 import { game } from '../core/gameState.js';
 import { damp, dampAngle } from '../core/mathUtils.js';
-import { createCharacterMesh, CHARACTER_LOOKS, randomCivilianLook as randomLook } from './characterMeshFactory.js';
+import { CHARACTER_LOOKS, randomCivilianLook as randomLook } from './characterLooks.js';
 import { animateCharacter } from './characterAnimation.js';
 import { resolveCircleAgainstStatics } from '../world/collisionGrid.js';
 import { constrainToLand, groundHeightAt } from '../world/cityLayout.js';
 import { damageCharacter } from '../combat/damageSystem.js';
 import { reportCrime } from '../systems/wantedLevel.js';
-import { playSound } from '../audio/soundEffects.js';
+import { playSound } from '../core/cues.js';
 
 let nextCharacterId = 1;
+let createCharacterMesh = null;
+/** The renderer side plugs in the model builder (see characterMeshFactory.js) so game logic stays mesh-agnostic. */
+export function registerCharacterMeshFactory(factory) { createCharacterMesh = factory; }
 export const randomCivilianLook = randomLook;
 
 export function spawnCharacter({ x, z, heading = 0, kind = 'ped', look = null, health = null, weapon = 'fists', name = null }) {

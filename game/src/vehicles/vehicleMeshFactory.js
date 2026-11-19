@@ -2,7 +2,7 @@
 // police light bars, taxi signs. Models face +z; one merged body mesh per car keeps draw calls low.
 import * as THREE from 'three';
 import { GeometryBatch } from '../world/geometryBatcher.js';
-import { getGlowTexture } from '../world/roadTextures.js';
+import { getGlowTexture } from '../world/glowTexture.js';
 
 const bodyMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.32, metalness: 0.45 });
 const lampMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });

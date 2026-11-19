@@ -1,24 +1,12 @@
-// Traffic signals at every grid intersection: timing, queries for the traffic AI, and instanced poles + lamps.
+// Traffic signal models at every grid intersection: instanced poles and lamps coloured from the signal timing.
 import * as THREE from 'three';
 import { game } from '../core/gameState.js';
 import { GeometryBatch } from '../world/geometryBatcher.js';
 import { ROAD_HALF } from '../world/cityLayout.js';
+import { getSignalState } from './trafficSignalTiming.js';
 
-const CYCLE = 26, GREEN = 10.5, YELLOW = 2.5;
 let lampMesh = null, lampRefs = [], lastTick = -1;
 const color = new THREE.Color();
-
-function nodeOffset(node) { return (node.i * 7 + node.j * 11) % CYCLE; }
-
-/** Signal state for traffic travelling along the horizontal (east-west) or vertical axis through a node. */
-export function getSignalState(node, horizontal, time = game.time) {
-  if (!node.signal) return 'green';
-  const t = (time + nodeOffset(node)) % CYCLE;
-  const own = horizontal ? (t + CYCLE / 2) % CYCLE : t;
-  if (own < GREEN) return 'green';
-  if (own < GREEN + YELLOW) return 'yellow';
-  return 'red';
-}
 
 export function buildTrafficLights(network) {
   const poleBatch = new GeometryBatch();

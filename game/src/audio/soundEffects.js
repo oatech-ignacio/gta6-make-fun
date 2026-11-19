@@ -3,6 +3,7 @@
 import { game } from '../core/gameState.js';
 import { getAudioContext, getSfxBus, getNoiseBuffer } from './audioEngine.js';
 import { clamp } from '../core/mathUtils.js';
+import { onEvent } from '../core/eventBus.js';
 
 function noiseBurst(ctx, out, t, dur, freq, q, gain, type = 'lowpass', sweepTo = null) {
   const src = ctx.createBufferSource(); src.buffer = getNoiseBuffer(); src.loop = true;
@@ -59,6 +60,8 @@ export function playSound(name, pos = null, volume = 1) {
   const g = ctx.createGain(); g.gain.value = gain * 0.6; g.connect(getSfxBus());
   recipe(ctx, g, ctx.currentTime + 0.005);
 }
+
+export function initSoundEffects() { onEvent('cue:sound', (e) => playSound(e.name, e.pos, e.volume)); }
 
 // ---- continuous sounds ----
 const loops = { engine: null, siren: null, screech: null, surf: null };

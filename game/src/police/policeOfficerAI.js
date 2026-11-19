@@ -5,7 +5,7 @@ import { emitEvent } from '../core/eventBus.js';
 import { moveToward, faceToward, removeCharacter } from '../characters/characterEntity.js';
 import { hasLineOfSight } from '../world/collisionGrid.js';
 import { npcShootAt } from '../combat/weaponFire.js';
-import { playSound } from '../audio/soundEffects.js';
+import { playSound } from '../core/cues.js';
 
 export function updatePoliceOfficer(cop, dt) {
   if (cop.state === 'down' || cop.state === 'dead') { cop.aiming = false; return; }

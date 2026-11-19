@@ -4,44 +4,57 @@ import { game, resetProgress } from './gameState.js';
 import { createSeededRandom } from './rng.js';
 import { initInput, wasKeyPressed, endInputFrame, setPointerLockEnabled, requestPointerLock, releasePointerLock } from './input.js';
 import { startGameLoop, stepSimulation, renderOnce } from './gameLoop.js';
-import { createRenderer, renderFrame, getPostProcessing } from '../render/renderer.js';
-import { cameraRig, updateFollowCamera, snapCameraBehind } from '../render/followCamera.js';
-import { buildCity, updateCityAnimations } from '../world/cityBuilder.js';
-import { initDayNight, updateDayNight, lighting, setTimeOfDay } from '../world/dayNightCycle.js';
-import { PLACES } from '../world/cityLayout.js';
-import { buildTrafficLights, updateTrafficLights } from '../vehicles/trafficLights.js';
-import { updateVehiclePhysics, resolveVehicleCollisions } from '../vehicles/vehiclePhysics.js';
-import { initTraffic, updateTraffic, populateTrafficAround } from '../vehicles/trafficAI.js';
-import { createPlayer, updatePlayer, teleportPlayer } from '../characters/playerController.js';
-import { updateCharacterPhysics } from '../characters/characterEntity.js';
-import { initPedestrians, updatePedestrians, populatePedestriansAround } from '../characters/pedestrianAI.js';
-import { initVisualEffects, updateVisualEffects } from '../combat/visualEffects.js';
-import { initDamageSystem } from '../combat/damageSystem.js';
-import { selectWeapon } from '../combat/weaponCatalog.js';
-import { initPoliceDispatch, updatePoliceDispatch } from '../police/policeDispatch.js';
+// wanted level and police
 import { updateWantedLevel } from '../systems/wantedLevel.js';
-import { initWorldPickups, updatePickups } from '../systems/pickups.js';
-import { initShops, updateShops, isShopMenuOpen } from '../systems/shops.js';
-import { initPlayerRespawn, updatePlayerRespawn } from '../systems/playerRespawn.js';
+import { initPoliceDispatch, updatePoliceDispatch } from '../police/policeDispatch.js';
+// player, pedestrians, vehicles and traffic
+import { createPlayer, updatePlayer, teleportPlayer } from '../characters/playerController.js';
+import { initPedestrians, updatePedestrians, populatePedestriansAround } from '../characters/pedestrianAI.js';
+import { updateCharacterPhysics, registerCharacterMeshFactory } from '../characters/characterEntity.js';
+import { updateVehiclePhysics, resolveVehicleCollisions, registerVehicleMeshFactory } from '../vehicles/vehiclePhysics.js';
+import { initTraffic, updateTraffic, populateTrafficAround } from '../vehicles/trafficAI.js';
+// story, economy, saves, HUD, missions
+import { STORY_CAST } from '../missions/storyCharacters.js';
+import { STORY_MISSIONS } from '../missions/storyMissions.js';
+import { getRespectRank } from '../systems/economy.js';
 import { initAutosave, readSave, applySave } from '../systems/saveGame.js';
-import { loadSettings, getSettings } from '../systems/settings.js';
+import { initHud, updateHud, setHudVisible, setObjective } from '../ui/hud.js';
 import { initMissions, updateMissions, refreshMissionStartMarker } from '../missions/missionRunner.js';
 import { updateMarkers } from '../missions/missionMarkers.js';
 import { initSideActivities, updateSideActivities } from '../missions/sideActivities.js';
-import { initHud, updateHud, setHudVisible, setObjective } from '../ui/hud.js';
-import { buildBaseMap } from '../ui/minimap.js';
-import { initPauseMap, openPauseMap, closePauseMap, isPauseMapOpen, updatePauseMap } from '../ui/pauseMap.js';
+// combat, pickups, shops, respawn
+import { initDamageSystem } from '../combat/damageSystem.js';
+import { selectWeapon } from '../combat/weaponCatalog.js';
+import { initWorldPickups, updatePickups } from '../systems/pickups.js';
+import { initShops, updateShops, isShopMenuOpen } from '../systems/shops.js';
+import { initPlayerRespawn, updatePlayerRespawn } from '../systems/playerRespawn.js';
+import { initPoliceHelicopter, updatePoliceHelicopter } from '../police/policeHelicopter.js';
+import { loadSettings, getSettings } from '../systems/settings.js';
+// interface
+import { buildBaseMap, drawMinimap } from '../ui/minimap.js';
+import { initPauseMap, openPauseMap, closePauseMap, updatePauseMap } from '../ui/pauseMap.js';
 import { showStartScreen, hideStartScreen } from '../ui/startScreen.js';
 import { updateDialogue } from '../ui/dialogueBox.js';
 import { showNotification } from '../ui/notifications.js';
+// audio and effects
 import { initAudio, resumeAudio, suspendAudio } from '../audio/audioEngine.js';
-import { updateContinuousSounds } from '../audio/soundEffects.js';
+import { initSoundEffects, updateContinuousSounds } from '../audio/soundEffects.js';
 import { updateRadio } from '../audio/radioStations.js';
+import { initVisualEffects, updateVisualEffects } from '../combat/visualEffects.js';
+// world generation, models and rendering
+import { PLACES } from '../world/cityLayout.js';
+import { buildCity, updateCityAnimations } from '../world/cityBuilder.js';
+import { initDayNight, updateDayNight, lighting, setTimeOfDay } from '../world/dayNightCycle.js';
+import { buildTrafficLights, updateTrafficLights } from '../vehicles/trafficLights.js';
+import { createVehicleMesh, animateLightBar } from '../vehicles/vehicleMeshFactory.js';
+import { createCharacterMesh } from '../characters/characterMeshFactory.js';
+import { createRenderer, renderFrame, getPostProcessing } from '../render/renderer.js';
+import { cameraRig, updateFollowCamera, snapCameraBehind } from '../render/followCamera.js';
 import { runScreenshotScene } from '../shots/screenshotDirector.js';
 
 const params = new URLSearchParams(location.search);
 const shotName = params.get('shot');
-let menuAngle = 0.6, manualStepping = false;
+let menuAngle = 0.6, manualStepping = false, minimapCanvas = null;
 
 /** One simulation step of the whole world. `dt` is scaled game time, `realDt` is wall-clock time. */
 export function simulateWorld(dt, realDt = dt) {
@@ -49,6 +62,7 @@ export function simulateWorld(dt, realDt = dt) {
   updatePlayer(dt);
   updateTraffic(dt);
   updatePoliceDispatch(dt);
+  updatePoliceHelicopter(dt);
   for (const v of game.vehicles) updateVehiclePhysics(v, dt);
   resolveVehicleCollisions();
   updatePedestrians(dt);
@@ -70,6 +84,7 @@ export function simulateWorld(dt, realDt = dt) {
   updateRadio(dt);
   updateContinuousSounds(dt);
   updateHud(realDt);
+  drawMinimap(minimapCanvas);
 }
 
 function setPaused(paused) {
@@ -120,8 +135,9 @@ function beginPlay(saved) {
     const pos = applySave(saved) || PLACES.safehouse;
     teleportPlayer(pos.x, pos.z, pos.heading || 0);
     game.player.health = pos.health || 100; game.player.armor = pos.armor || 0;
+    game.missionIndex = Math.min(game.missionIndex, STORY_MISSIONS.length);
     selectWeapon(game.currentWeapon);
-    showNotification('<b>WELCOME BACK</b>Game loaded. Follow the letter blip to your next job.', 'gold', 6);
+    showNotification(`<b>WELCOME BACK, ${getRespectRank().name.toUpperCase()}</b>Game loaded. Follow the letter blip to your next job.`, 'gold', 6);
   } else {
     resetProgress();
     teleportPlayer(PLACES.safehouse.x + 4, PLACES.safehouse.z + 12, 0);
@@ -151,6 +167,8 @@ function enterMenu() {
 
 function boot() {
   loadSettings();
+  registerVehicleMeshFactory(createVehicleMesh, animateLightBar);
+  registerCharacterMeshFactory(createCharacterMesh);
   game.seed = Number(params.get('seed') || 1);
   game.rng = createSeededRandom(game.seed);
   const canvas = document.getElementById('view');
@@ -160,8 +178,10 @@ function boot() {
   if (params.get('hour')) game.timeOfDay = Number(params.get('hour'));
   initDayNight(game.scene, { sky: game.city.sky, facadeMaterials: game.city.facadeMaterials, signs: game.city.signs, beacons: game.city.beacons });
   initVisualEffects(game.scene);
-  initInput(canvas); initAudio(); initHud(); buildBaseMap();
-  initTraffic(); initPedestrians(); initDamageSystem(); initPoliceDispatch(); initPlayerRespawn(); initMissions(); initAutosave();
+  initInput(canvas); initAudio(); initSoundEffects(); initHud(); buildBaseMap();
+  minimapCanvas = document.getElementById('minimap');
+  document.title = `PALMERA HEAT - ${STORY_CAST.dez.name} & ${STORY_CAST.luz.name}`;
+  initTraffic(); initPedestrians(); initDamageSystem(); initPoliceDispatch(); initPoliceHelicopter(); initPlayerRespawn(); initMissions(); initAutosave();
   initPauseMap({ onResume: () => setPaused(false), onQuit: () => location.reload() });
   resetProgress();
   createPlayer(PLACES.safehouse.x + 4, PLACES.safehouse.z + 12, 0);

@@ -4,8 +4,7 @@ import { emitEvent, onEvent } from '../core/eventBus.js';
 import { reportCrime } from '../systems/wantedLevel.js';
 import { knockDownCharacter } from '../characters/characterEntity.js';
 import { damageVehicle } from '../vehicles/vehiclePhysics.js';
-import { spawnPickup } from '../systems/pickups.js';
-import { playSound } from '../audio/soundEffects.js';
+import { playSound } from '../core/cues.js';
 
 export function initDamageSystem() {
   onEvent('vehicleExploded', (v) => {
@@ -47,9 +46,9 @@ export function killCharacter(c, attacker = null, type = 'bullet') {
   }
   if (c.kind !== 'cop' || Math.random() < 0.5) {
     const cash = c.kind === 'gang' || c.kind === 'guard' ? 80 + Math.floor(Math.random() * 160) : 12 + Math.floor(Math.random() * 70);
-    spawnPickup(c.kind === 'cop' ? 'ammo' : 'cash', c.pos.x + (Math.random() - 0.5), c.pos.z + (Math.random() - 0.5), { amount: cash, temporary: 40 });
+    emitEvent('dropLoot', { type: c.kind === 'cop' ? 'ammo' : 'cash', x: c.pos.x + (Math.random() - 0.5), z: c.pos.z + (Math.random() - 0.5), options: { amount: cash, temporary: 40 } });
   }
-  if ((c.kind === 'gang' || c.kind === 'guard') && Math.random() < 0.5) spawnPickup('ammo', c.pos.x + 0.8, c.pos.z, { temporary: 40 });
+  if ((c.kind === 'gang' || c.kind === 'guard') && Math.random() < 0.5) emitEvent('dropLoot', { type: 'ammo', x: c.pos.x + 0.8, z: c.pos.z, options: { temporary: 40 } });
   emitEvent('characterKilled', { character: c, attacker, type });
 }
 

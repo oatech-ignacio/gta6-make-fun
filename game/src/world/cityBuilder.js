@@ -5,7 +5,8 @@ import { GRID_X, GRID_Z, ROAD_HALF, CURB_HEIGHT, CAUSEWAY_Z, BEACH_X, listCityBl
 import { buildRoadNetwork } from './roadNetwork.js';
 import { clearStaticColliders, addStaticBox, isPointInsideStatic } from './collisionGrid.js';
 import { createFacadeTextureSet, createFacadeMaterial } from './facadeTextures.js';
-import { createRoadSegmentTexture, createIntersectionTexture, createSidewalkTexture, createSandTexture, createGrassTexture, createConcreteTexture, getGlowTexture } from './roadTextures.js';
+import { createRoadSegmentTexture, createIntersectionTexture, createSidewalkTexture, createSandTexture, createGrassTexture, createConcreteTexture } from './roadTextures.js';
+import { getGlowTexture } from './glowTexture.js';
 import { generateBlockBuildings, generateFringeBuildings, addBuildingVolume } from './buildingGenerator.js';
 import { buildNeonSigns } from './neonSigns.js';
 import { buildPalmTrees, buildBroadleafTrees } from './palmTrees.js';
