@@ -14,6 +14,7 @@ export const CHARACTER_LOOKS = {
   cop: { skin: 0xe0ac86, shirt: 0x1d2f5e, pants: 0x151c33, hair: 0x1a1410, shoes: 0x0c0c0c, cap: 0x101a3a, badge: true },
   swat: { skin: 0xc68a5e, shirt: 0x1c1f26, pants: 0x1c1f26, hair: 0x111111, shoes: 0x0c0c0c, helmet: 0x15171c, vest: 0x2b303b },
   gang: { skin: 0xc68a5e, shirt: 0x0f7f86, pants: 0x1b1b1f, hair: 0x111111, shoes: 0xffffff, bandana: 0x19d3c5 },
+  vega: { skin: 0xb9794f, shirt: 0x101014, undershirt: 0x19d3c5, pants: 0x1b1b1f, hair: 0x111111, shoes: 0xffffff, bandana: 0x19d3c5, openShirt: true },
   guard: { skin: 0x9b6a45, shirt: 0x8a8f99, pants: 0x2b2f3a, hair: 0x111111, shoes: 0x0c0c0c, cap: 0x2b2f3a, badge: true },
 };
 

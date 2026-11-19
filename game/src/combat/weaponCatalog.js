@@ -12,15 +12,18 @@ export const WEAPONS = {
   smg: { key: 'smg', name: 'Mako SMG', slot: 3, damage: 14, rate: 0.08, clip: 34, range: 58, spread: 0.036, auto: true, price: 1800, ammoPrice: 140, ammoPack: 136, sound: 'smg', respect: 1 },
   /** Tidebreaker 12: eight-pellet pump shotgun. Brutal up close, falls off fast, slow to cycle. */
   shotgun: { key: 'shotgun', name: 'Tidebreaker 12', slot: 4, damage: 13, pellets: 8, rate: 0.9, clip: 6, range: 28, spread: 0.09, auto: false, price: 2500, ammoPrice: 120, ammoPack: 24, sound: 'shotgun', respect: 2 },
+  /** Barracuda AR: accurate automatic rifle for the late game. Sold only to Shot Callers. */
+  rifle: { key: 'rifle', name: 'Barracuda AR', slot: 5, damage: 24, rate: 0.11, clip: 30, range: 96, spread: 0.016, auto: true, price: 5200, ammoPrice: 260, ammoPack: 120, sound: 'smg', respect: 3 },
 };
 /** Cycle order for the mouse wheel and number keys; matches each weapon's slot. */
-export const WEAPON_ORDER = ['fists', 'pistol', 'smg', 'shotgun'];
+export const WEAPON_ORDER = ['fists', 'pistol', 'smg', 'shotgun', 'rifle'];
 
 export const WEAPON_ICONS = {
   fists: '<svg viewBox="0 0 84 50"><path fill="#fff" d="M24 14h30a8 8 0 0 1 8 8v10a10 10 0 0 1-10 10H30a10 10 0 0 1-10-10V18a4 4 0 0 1 4-4zm4 0v10m9-10v10m9-10v10" stroke="#111" stroke-width="2.5"/></svg>',
   pistol: '<svg viewBox="0 0 84 50"><path fill="#fff" stroke="#111" stroke-width="2" d="M10 12h58l4 3v9H46l-2 6H34l-3 14H17l5-20H10z"/><rect x="50" y="15" width="16" height="3" fill="#111"/></svg>',
   smg: '<svg viewBox="0 0 84 50"><path fill="#fff" stroke="#111" stroke-width="2" d="M4 14h62v-4h4v4h10v8H56l-2 5H44v17h-9V27h-9l-4 12H12l4-14H4z"/><rect x="48" y="16" width="20" height="3" fill="#111"/></svg>',
   shotgun: '<svg viewBox="0 0 84 50"><path fill="#fff" stroke="#111" stroke-width="2" d="M2 16h78v6H52v4H30l-6 14H12l4-14H2z"/><rect x="36" y="23" width="14" height="5" fill="#111"/></svg>',
+  rifle: '<svg viewBox="0 0 84 50"><path fill="#fff" stroke="#111" stroke-width="2" d="M2 15h14l3-3h37v-3h4v3h22v5H62v4h-8l3 16h-9l-4-14h-9l-5 12h-9l4-13H16l-6 6H2z"/><rect x="40" y="14" width="18" height="3" fill="#111"/></svg>',
 };
 
 /** Seconds a reload takes, shared by every firearm. */

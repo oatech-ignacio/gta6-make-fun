@@ -97,3 +97,10 @@ export function updatePoliceHelicopter(dt) {
 }
 
 export function getHelicopter() { return heli; }
+
+/** Position and status word (INBOUND, SPOTLIGHT, FIRING) for the HUD, or null when no helicopter is up. */
+export function getHelicopterStatus() {
+  if (!heli.active || heli.leaving) return null;
+  const status = !heli.seesPlayer ? 'INBOUND' : game.wanted.stars >= 5 ? 'FIRING' : 'SPOTLIGHT';
+  return { x: heli.pos.x, z: heli.pos.z, status };
+}

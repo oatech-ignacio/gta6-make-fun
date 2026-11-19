@@ -4,10 +4,10 @@ import { emitEvent } from '../core/eventBus.js';
 
 export const RESPECT_RANKS = [
   { name: 'Street Rat', at: 0, unlock: 'Pistols at Iron Pelican Arms' },
-  { name: 'Hustler', at: 100, unlock: 'Mako SMG, taxi fares pay double' },
-  { name: 'Wheelman', at: 260, unlock: 'Tidebreaker shotgun, body armour' },
-  { name: 'Shot Caller', at: 520, unlock: 'Boulevard Sprint high-stakes races' },
-  { name: 'Kingpin of Palmera', at: 900, unlock: 'The whole bay answers to you' },
+  { name: 'Hustler', at: 150, unlock: 'Mako SMG, taxi fares pay double' },
+  { name: 'Wheelman', at: 400, unlock: 'Tidebreaker shotgun, body armour' },
+  { name: 'Shot Caller', at: 800, unlock: 'Barracuda AR rifle, high-stakes Boulevard Sprint' },
+  { name: 'Kingpin of Palmera', at: 1400, unlock: 'The whole bay answers to you' },
 ];
 
 export function addMoney(amount, reason = '') {
@@ -37,5 +37,5 @@ export function getRespectRank() {
   while (index < RESPECT_RANKS.length - 1 && game.respect >= RESPECT_RANKS[index + 1].at) index++;
   const rank = RESPECT_RANKS[index], next = RESPECT_RANKS[index + 1];
   const progress = next ? (game.respect - rank.at) / (next.at - rank.at) : 1;
-  return { index, name: rank.name, unlock: rank.unlock, next: next ? next.name : null, progress };
+  return { index, name: rank.name, unlock: rank.unlock, next: next ? next.name : null, progress, respect: Math.round(game.respect), nextAt: next ? next.at : rank.at };
 }

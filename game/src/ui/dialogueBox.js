@@ -5,6 +5,7 @@ import { CHARACTER_LOOKS } from '../characters/characterLooks.js';
 import { drawCharacterPortrait } from './characterPortraits.js';
 import { playSound } from '../core/cues.js';
 import { game } from '../core/gameState.js';
+import { emitEvent } from '../core/eventBus.js';
 
 const state = { lines: null, index: 0, timer: 0, onDone: null };
 
@@ -16,6 +17,7 @@ function showLine() {
   document.getElementById('dialogue').classList.remove('hidden');
   state.timer = 2.4 + line.text.length * 0.052;
   if (game.player) playSound('talk', game.player.pos);
+  emitEvent('castSpoke', { who: line.who });
 }
 
 export function playDialogue(lines, onDone) {

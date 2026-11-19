@@ -28,10 +28,11 @@ export function updatePoliceOfficer(cop, dt) {
     // one star: run the suspect down and cuff them
     cop.aiming = dist < 9 && dist > 2;
     const playerSlow = player.vehicle ? Math.abs(player.vehicle.speed) < 2.5 : true;
+    cop.status = 'PURSUIT';
     if (dist > 1.5) { moveToward(cop, target.x, target.z, 5.6, dt); cop.state = 'run'; }
     else { cop.vel.x = cop.vel.z = 0; faceToward(cop, target.x, target.z, 10, dt); }
     if (dist < (player.vehicle ? 3.4 : 1.9) && playerSlow) {
-      cop.arrestTimer = (cop.arrestTimer || 0) + dt;
+      cop.arrestTimer = (cop.arrestTimer || 0) + dt; cop.status = 'ARRESTING';
       if (cop.arrestTimer > 1.1) { cop.arrestTimer = 0; emitEvent('playerBusted', { cop }); }
     } else cop.arrestTimer = Math.max(0, (cop.arrestTimer || 0) - dt * 0.5);
     if (dist < 12 && !cop.shouted) { cop.shouted = true; playSound('freeze', cop.pos); }
@@ -40,6 +41,7 @@ export function updatePoliceOfficer(cop, dt) {
   const range = cop.weapon === 'smg' ? 30 : 24;
   if (dist > range || !cop.los) {
     moveToward(cop, target.x, target.z, 5.4, dt); cop.state = 'run'; cop.aiming = false;
+    cop.status = cop.los ? 'PURSUIT' : 'FLANKING';
   } else {
     // hold position, strafe a little, and shoot
     faceToward(cop, target.x, target.z, 12, dt);
@@ -51,5 +53,12 @@ export function updatePoliceOfficer(cop, dt) {
     cop.aiming = true; cop.state = 'aim';
     cop.aimPitch = 0;
     npcShootAt(cop, player, 0.3 + stars * 0.07);
+    cop.status = 'FIRING';
   }
+}
+
+/** Status word for the HUD (PURSUIT, FLANKING, FIRING, ARRESTING), or null for officers who are down or standing by. */
+export function getOfficerStatus(cop) {
+  if (cop.state === 'dead' || cop.state === 'down' || cop.recall || (game.wanted.stars === 0 && !cop.hostile)) return null;
+  return cop.status || 'PURSUIT';
 }

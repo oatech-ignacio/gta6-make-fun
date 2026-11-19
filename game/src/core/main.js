@@ -17,7 +17,8 @@ import { initTraffic, updateTraffic, populateTrafficAround } from '../vehicles/t
 import { STORY_CAST } from '../missions/storyCharacters.js';
 import { STORY_MISSIONS } from '../missions/storyMissions.js';
 import { getRespectRank } from '../systems/economy.js';
-import { initAutosave, readSave, applySave } from '../systems/saveGame.js';
+import { initAutosave, applySave, latestSave } from '../systems/saveGame.js';
+import { initProgression, updateProgression } from '../systems/progression.js';
 import { initHud, updateHud, setHudVisible, setObjective } from '../ui/hud.js';
 import { initMissions, updateMissions, refreshMissionStartMarker } from '../missions/missionRunner.js';
 import { updateMarkers } from '../missions/missionMarkers.js';
@@ -70,6 +71,7 @@ export function simulateWorld(dt, realDt = dt) {
   updateWantedLevel(dt);
   updateMissions(dt, realDt);
   updateSideActivities(dt);
+  updateProgression(dt);
   updateShops(dt);
   updatePickups(dt);
   updateMarkers(dt);
@@ -160,7 +162,8 @@ function enterMenu() {
   setPointerLockEnabled(false);
   showStartScreen({
     onNewGame: () => beginPlay(null),
-    onContinue: () => { const s = readSave(); if (s) beginPlay(s); },
+    onContinue: () => { const s = latestSave(); if (s) beginPlay(s); },
+    onLoad: (data) => beginPlay(data),
     onGraphicsChanged: applyGraphicsSettings,
   });
 }
@@ -181,8 +184,8 @@ function boot() {
   initInput(canvas); initAudio(); initSoundEffects(); initHud(); buildBaseMap();
   minimapCanvas = document.getElementById('minimap');
   document.title = `PALMERA HEAT - ${STORY_CAST.dez.name} & ${STORY_CAST.luz.name}`;
-  initTraffic(); initPedestrians(); initDamageSystem(); initPoliceDispatch(); initPoliceHelicopter(); initPlayerRespawn(); initMissions(); initAutosave();
-  initPauseMap({ onResume: () => setPaused(false), onQuit: () => location.reload() });
+  initTraffic(); initPedestrians(); initDamageSystem(); initPoliceDispatch(); initPoliceHelicopter(); initPlayerRespawn(); initMissions(); initAutosave(); initProgression();
+  initPauseMap({ onResume: () => setPaused(false), onQuit: () => location.reload(), onGraphicsChanged: applyGraphicsSettings });
   resetProgress();
   createPlayer(PLACES.safehouse.x + 4, PLACES.safehouse.z + 12, 0);
   initShops(); initSideActivities(); initWorldPickups(0);

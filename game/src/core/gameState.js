@@ -18,7 +18,10 @@ export const game = {
   activeMission: null,
   weapons: { fists: true }, ammo: {}, currentWeapon: 'fists',
   wanted: { stars: 0, heat: 0, unseen: 0, evading: false, lastKnown: { x: 0, z: 0 }, flash: 0 },
-  stats: { kills: 0, carsStolen: 0, distance: 0, bustedCount: 0, wastedCount: 0, taxiFares: 0, racesWon: 0, playTime: 0, flamingos: 0, moneyEarned: 0, copsDown: 0 },
+  stats: { kills: 0, carsStolen: 0, distance: 0, bustedCount: 0, wastedCount: 0, taxiFares: 0, racesWon: 0, playTime: 0, flamingos: 0, moneyEarned: 0, copsDown: 0, copsEscaped: 0, highestWanted: 0, gangKills: 0, missionsFailed: 0 },
+  visited: {},             // district key -> true once the player has been there
+  crew: {},                // cast key -> true once they have spoken to the player
+  saveSlot: 1,             // manual save slot in use
   flags: { cinematic: false, controlsLocked: false, hudHidden: false },
   cameraShake: 0,
 };
@@ -28,6 +31,7 @@ export function resetProgress() {
   game.weapons = { fists: true }; game.ammo = {}; game.currentWeapon = 'fists';
   game.timeOfDay = 16.6;
   for (const k of Object.keys(game.stats)) game.stats[k] = 0;
+  game.visited = {}; game.crew = {};
   resetWantedState();
 }
 export function resetWantedState() {

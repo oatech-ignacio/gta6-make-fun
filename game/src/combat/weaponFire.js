@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { game } from '../core/gameState.js';
 import { wasKeyPressed, getMouse } from '../core/input.js';
 import { emitEvent } from '../core/eventBus.js';
-import { WEAPONS, selectWeapon, cycleWeapon, reloadWeapon } from './weaponCatalog.js';
+import { WEAPONS, WEAPON_ORDER, selectWeapon, cycleWeapon, reloadWeapon } from './weaponCatalog.js';
 import { damageCharacter } from './damageSystem.js';
 import { damageVehicle } from '../vehicles/vehiclePhysics.js';
 import { raycastStatics } from '../world/collisionGrid.js';
@@ -111,7 +111,7 @@ function punch(player) {
 export function updatePlayerCombat(dt) {
   const player = game.player, mouse = getMouse();
   if (player.health <= 0 || player.state === 'down' || game.flags.controlsLocked) return;
-  ['Digit1', 'Digit2', 'Digit3', 'Digit4'].forEach((code, i) => { if (wasKeyPressed(code)) selectWeapon(['fists', 'pistol', 'smg', 'shotgun'][i]); });
+  WEAPON_ORDER.forEach((key, i) => { if (wasKeyPressed('Digit' + (i + 1))) selectWeapon(key); });
   if (mouse.wheel) cycleWeapon(mouse.wheel > 0 ? 1 : -1);
   if (wasKeyPressed('KeyQ')) cycleWeapon(1);
   const key = game.currentWeapon, w = WEAPONS[key];

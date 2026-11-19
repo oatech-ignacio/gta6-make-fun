@@ -22,8 +22,9 @@ export const GUN_SHOP_STOCK = [
   { key: '1', label: 'Coral 9 pistol', weapon: 'pistol' },
   { key: '2', label: 'Mako SMG', weapon: 'smg' },
   { key: '3', label: 'Tidebreaker 12 shotgun', weapon: 'shotgun' },
-  { key: '4', label: 'Body armour', armor: true, price: 600, respect: 0 },
-  { key: '5', label: 'First-aid kit', health: true, price: 150, respect: 0 },
+  { key: '4', label: 'Barracuda AR rifle', weapon: 'rifle' },
+  { key: '5', label: 'Body armour', armor: true, price: 600, respect: 0 },
+  { key: '6', label: 'First-aid kit', health: true, price: 150, respect: 0 },
 ];
 
 export function initShops() {

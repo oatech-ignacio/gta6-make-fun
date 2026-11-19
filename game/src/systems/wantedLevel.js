@@ -50,12 +50,13 @@ export function addWantedHeat(amount) {
   const w = game.wanted, before = w.stars;
   w.heat = Math.min(STAR_HEAT[5] + 60, w.heat + amount);
   w.stars = Math.max(w.stars, starsForHeat(w.heat));
-  if (w.stars > before) { w.flash = 1.2; w.unseen = 0; emitEvent('wantedChanged', { stars: w.stars, before }); }
+  if (w.stars > before) { w.flash = 1.2; w.unseen = 0; if (before === 0) w.seen = true; game.stats.highestWanted = Math.max(game.stats.highestWanted || 0, w.stars); emitEvent('wantedChanged', { stars: w.stars, before }); }
 }
 
 export function setWantedLevel(stars) {
   const w = game.wanted, before = w.stars;
-  w.stars = Math.max(0, Math.min(5, stars)); w.heat = STAR_HEAT[w.stars] + (stars > 0 ? 5 : 0); w.unseen = 0; w.evading = false;
+  w.stars = Math.max(0, Math.min(5, stars)); w.heat = STAR_HEAT[w.stars] + (stars > 0 ? 5 : 0); w.unseen = 0; w.evading = false; w.seen = stars > 0;
+  game.stats.highestWanted = Math.max(game.stats.highestWanted || 0, w.stars);
   if (before !== w.stars) emitEvent('wantedChanged', { stars: w.stars, before });
 }
 
@@ -63,7 +64,7 @@ export function clearWantedLevel(reason = 'lost') {
   const w = game.wanted;
   if (w.stars === 0 && w.heat === 0) return;
   const before = w.stars;
-  w.stars = 0; w.heat = 0; w.unseen = 0; w.evading = false;
+  w.stars = 0; w.heat = 0; w.unseen = 0; w.evading = false; w.seen = false;
   emitEvent('wantedChanged', { stars: 0, before, reason });
 }
 
@@ -83,6 +84,14 @@ function policeCanSeePlayer() {
 }
 
 export function getEscapeTime() { return 9 + game.wanted.stars * 5; }
+
+/** For the HUD chip: are the police looking at the player, and if not, how long until the search is called off. */
+export function getSightStatus() {
+  const w = game.wanted;
+  if (w.stars === 0) return null;
+  const total = getEscapeTime();
+  return { inSight: !!w.seen || w.unseen < 0.3, held: !!game.flags.wantedHold, searchRemaining: Math.max(0, total - w.unseen), searchTotal: total };
+}
 
 export function updateWantedLevel(dt) {
   const w = game.wanted;

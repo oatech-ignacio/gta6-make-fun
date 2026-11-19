@@ -25,11 +25,12 @@ page.on('pageerror', (e) => errors.push('pageerror: ' + e.message + '\n' + (e.st
 page.on('requestfailed', (r) => errors.push('requestfailed: ' + r.url()));
 await page.goto(`http://127.0.0.1:${server.address().port}/index.html?seed=3`);
 await page.waitForFunction('window.__game && window.__game.mode === "menu"', null, { timeout: 120000 });
+const log = (label, value) => console.log(label.padEnd(26), JSON.stringify(value));
 await page.screenshot({ path: join(shots, 'smoke-menu.jpg'), type: 'jpeg', quality: 80 });
-await page.click('#ss-controls'); await page.click('#ss-settings'); await page.click('#ss-story');
+await page.click('#ss-controls'); await page.click('#ss-settings'); await page.click('#ss-story'); await page.click('#ss-load');
+log('start screen', await page.evaluate(() => ({ slots: document.querySelectorAll('#start-screen .slot').length, empty: document.querySelectorAll('#start-screen .slot.empty').length })));
 await page.click('#ss-new');
 await page.waitForFunction('window.__game.mode === "play"');
-const log = (label, value) => console.log(label.padEnd(26), JSON.stringify(value));
 await page.evaluate(() => window.__debug.setManualStepping(true));
 const ff = (seconds) => page.evaluate((s) => window.__debug.fastForward(s), seconds);
 
@@ -45,6 +46,7 @@ await page.screenshot({ path: join(shots, 'smoke-drive.jpg'), type: 'jpeg', qual
 // wanted level, police response, roadblock, helicopter
 await page.evaluate(async () => { const w = await import('./src/systems/wantedLevel.js'); w.setWantedLevel(4); window.__game.flags.wantedHold = true; });
 await page.keyboard.down('KeyW'); await ff(14); await page.keyboard.up('KeyW');
+log('police panel', await page.evaluate(async () => { const pu = await import('./src/police/policeUnits.js'); return { chip: document.getElementById('sight-chip').textContent, rows: document.querySelectorAll('#police-panel .pu').length, units: pu.getPoliceUnits().slice(0, 6).map((u) => `${u.callsign} ${Math.round(u.distance)}m ${u.status}`) }; }));
 log('wanted', await page.evaluate(() => { const g = window.__game; return { stars: g.wanted.stars, police: g.vehicles.filter((v) => v.isPolice).length, cops: g.characters.filter((c) => c.kind === 'cop').length, heli: !!(g.helicopter && g.helicopter.active), health: g.player.health.toFixed(0) }; }));
 await page.screenshot({ path: join(shots, 'smoke-wanted.jpg'), type: 'jpeg', quality: 80 });
 // get out, shoot, punch
@@ -63,19 +65,44 @@ await page.evaluate(() => { const g = window.__game, m = g.activeMission, v = m.
 await ff(0.1); await page.keyboard.press('KeyF'); await ff(0.5);
 await page.evaluate(() => { const g = window.__game, v = g.player.vehicle; v.pos.set(-196, 0, 346); v.vx = v.vz = 0; }); await ff(2);
 for (let i = 0; i < 6; i++) { await page.keyboard.press('Enter'); await ff(0.3); } await ff(2);
-log('after mission 1', await page.evaluate(() => { const g = window.__game; return { missionIndex: g.missionIndex, money: g.money, respect: g.respect, active: !!g.activeMission, saved: !!localStorage.getItem('palmeraHeat.save.v1') }; }));
-// missions 2..6: start each and run a couple of seconds per step type to catch script errors
-for (let index = 1; index < 6; index++) {
-  const steps = await page.evaluate(async (i) => { const g = window.__game; const mr = await import('./src/missions/missionRunner.js'); if (g.activeMission) mr.failMission('test'); g.missionIndex = i; const m = mr.startMission(i); return m.def.steps.map((s) => s.type); }, index);
-  const seen = new Set(['dialogue']);
-  for (const type of steps) {
-    if (seen.has(type)) continue; seen.add(type);
-    await page.evaluate(async (t) => { const mr = await import('./src/missions/missionRunner.js'); mr.jumpToMissionStep(t); }, type);
-    await ff(2.5);
+log('after mission 1', await page.evaluate(() => { const g = window.__game; return { missionIndex: g.missionIndex, money: g.money, respect: g.respect, active: !!g.activeMission, saved: !!localStorage.getItem('palmeraHeat.save.v2.auto') }; }));
+// missions 2..8: play every stage to completion, doing what the player would do (teleporting instead of driving)
+const solveStep = (index) => page.evaluate(async (expected) => {
+  const g = window.__game, m = g.activeMission; if (!m || !m.step || m.index !== expected) return null;
+  const ve = await import('./src/vehicles/vehicleEntry.js'), vp = await import('./src/vehicles/vehiclePhysics.js'), pc = await import('./src/characters/playerController.js');
+  const dmg = await import('./src/combat/damageSystem.js'), wl = await import('./src/systems/wantedLevel.js');
+  const p = g.player, type = m.step.type; p.health = 100;
+  const onFootAt = (x, z) => { if (p.vehicle) ve.leaveVehicle(p); pc.teleportPlayer(x, z, 0); };
+  const driveTo = (x, z) => { const v = p.vehicle; v.pos.set(x, 0, z); v.vx = v.vz = 0; v.speed = 0; };
+  const needCar = () => { if (!p.vehicle) ve.enterVehicle(p, vp.spawnVehicle('sports', p.pos.x + 3, p.pos.z, 0)); };
+  if (type === 'goto' || type === 'hold' || type === 'collect') onFootAt(m.marker.x, m.marker.z);
+  else if (type === 'needVehicle') needCar();
+  else if (type === 'stealVehicle') { if (p.vehicle) ve.leaveVehicle(p); ve.enterVehicle(p, m.vehicle); }
+  else if (type === 'deliverVehicle') { if (p.vehicle !== m.vehicle) ve.enterVehicle(p, m.vehicle); driveTo(m.marker.x, m.marker.z); }
+  else if (type === 'chase') m.target.health = m.step.damageTo;
+  else if (type === 'eliminate') { for (const c of m.state.enemies) if (c.state !== 'dead') dmg.killCharacter(c, p); }
+  else if (type === 'pickupPassenger') { needCar(); driveTo(m.state.npc.pos.x + 3, m.state.npc.pos.z); }
+  else if (type === 'loseWanted') { g.wanted.seen = false; g.wanted.unseen = 999; }
+  return type;
+}, index);
+for (let index = 1; index < 8; index++) {
+  await page.evaluate(async (i) => { const g = window.__game; g.player.invulnerable = true; const mr = await import('./src/missions/missionRunner.js'); if (g.activeMission) mr.failMission('test'); const wl = await import('./src/systems/wantedLevel.js'); wl.clearWantedLevel(); g.missionIndex = i; mr.startMission(i); }, index);
+  const seen = [], banners = new Set();
+  for (let guard = 0; guard < 140; guard++) {
+    const type = await solveStep(index);
+    if (!type) break;
+    if (seen[seen.length - 1] !== type) seen.push(type);
+    if (type === 'dialogue') await page.keyboard.press('Enter');
+    await ff(type === 'hold' ? 4 : 0.4);
+    banners.add(await page.evaluate(() => document.getElementById('mission-stage').textContent));
   }
-  log(`mission ${index + 1} steps`, [...seen]);
+  const result = await page.evaluate(() => ({ missionIndex: window.__game.missionIndex, active: !!window.__game.activeMission }));
+  log(`mission ${index + 1}`, { ...result, stages: [...banners].filter(Boolean).length, steps: seen.join('>') });
+  if (result.missionIndex < index + 1) errors.push(`mission ${index + 1} could not be completed (stuck at ${seen[seen.length - 1]})`);
+  await ff(1);
 }
-await page.evaluate(async () => { const mr = await import('./src/missions/missionRunner.js'); if (window.__game.activeMission) mr.failMission('test'); });
+await page.evaluate(async () => { const g = window.__game; g.player.invulnerable = false; const mr = await import('./src/missions/missionRunner.js'); if (g.activeMission) mr.failMission('test'); const wl = await import('./src/systems/wantedLevel.js'); wl.clearWantedLevel(); });
+log('progress', await page.evaluate(async () => { const pr = await import('./src/systems/progression.js'); const g = window.__game; return { percent: pr.getCompletion().percent, respect: g.respect, rank: document.getElementById('respect-rank').textContent, label: document.getElementById('respect-label').textContent, crew: Object.keys(g.crew).length, gangKills: g.stats.gangKills, escapes: g.stats.copsEscaped, weaponSlots: document.querySelectorAll('#weapon-bar .ws').length, locked: document.querySelectorAll('#weapon-bar .ws.locked').length }; }));
 // taxi fares
 await page.evaluate(async () => { const g = window.__game; const vp = await import('./src/vehicles/vehiclePhysics.js'); const ve = await import('./src/vehicles/vehicleEntry.js'); if (g.player.vehicle) ve.leaveVehicle(g.player); const t = vp.spawnVehicle('taxi', 48, 100, 0); ve.enterVehicle(g.player, t); });
 await ff(0.2); await page.keyboard.press('KeyT'); await ff(3);
@@ -83,7 +110,11 @@ await ff(0.2); await page.keyboard.press('KeyT'); await ff(3);
 await page.keyboard.press('KeyM'); await page.waitForFunction('window.__game.paused === true', null, { timeout: 20000 });
 log('paused', await page.evaluate(() => ({ paused: window.__game.paused, mapVisible: !document.getElementById('pause-map').classList.contains('hidden') })));
 await page.screenshot({ path: join(shots, 'smoke-map.jpg'), type: 'jpeg', quality: 80 });
-await page.click('#pm-save'); await page.click('#pm-resume'); await ff(1);
+for (const tab of ['STORY', 'STATS', 'CREW', 'SETTINGS', 'CONTROLS', 'SAVE']) { await page.click(`.pm-tabs button[data-tab="${tab}"]`); await page.screenshot({ path: join(shots, `smoke-pause-${tab.toLowerCase()}.jpg`), type: 'jpeg', quality: 80 }); }
+await page.evaluate(async () => { const ve = await import('./src/vehicles/vehicleEntry.js'); ve.leaveVehicle(window.__game.player); });
+await page.click('#pause-map .slot[data-slot="2"]');
+log('save slots', await page.evaluate(() => ({ note: document.getElementById('pm-save-note').textContent, keys: Object.keys(localStorage).filter((k) => k.includes('save')).sort() })));
+await page.click('#pm-resume'); await ff(1);
 await page.evaluate(() => window.__debug.setManualStepping(false));
 // real-time frames: measure the loop
 const fps = await page.evaluate(() => new Promise((ok) => { let n = 0; const t0 = performance.now(); const tick = () => { n++; if (performance.now() - t0 > 3000) ok(n / 3); else requestAnimationFrame(tick); }; requestAnimationFrame(tick); }));

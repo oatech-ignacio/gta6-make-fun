@@ -7,11 +7,12 @@ import { STORY_MISSIONS, getMissionByIndex } from './storyMissions.js';
 import { STORY_CAST } from './storyCharacters.js';
 import { createMarker, removeMarker, clearMissionMarkers, isPlayerInMarker } from './missionMarkers.js';
 import { playDialogue, isDialogueActive, stopDialogue } from '../ui/dialogueBox.js';
-import { setObjective, setMissionName, setMissionTimer, setProgress, showTitleCard, showBigBanner, hideBigBanner } from '../ui/hud.js';
+import { setMissionTimer } from '../ui/missionBanner.js';
+import { setObjective, setProgress, showTitleCard, showBigBanner, hideBigBanner } from '../ui/hud.js';
 import { showNotification } from '../ui/notifications.js';
 import { addMoney, addRespect } from '../systems/economy.js';
-import { setWantedLevel } from '../systems/wantedLevel.js';
-import { giveWeapon, selectWeapon } from '../combat/weaponCatalog.js';
+import { setWantedLevel, getEscapeTime } from '../systems/wantedLevel.js';
+import { WEAPONS, giveWeapon, selectWeapon } from '../combat/weaponCatalog.js';
 import { spawnVehicle, removeVehicle } from '../vehicles/vehiclePhysics.js';
 import { assignTrafficRoute } from '../vehicles/trafficAI.js';
 import { seatPassenger } from '../vehicles/vehicleEntry.js';
@@ -62,8 +63,7 @@ export function startMission(index) {
   if (startMarker) { removeMarker(startMarker); startMarker = null; }
   const m = { def, index, stepIndex: -1, step: null, state: {}, entities: [], vehicles: [], pickups: [], marker: null, vehicle: null, target: null, elapsed: 0 };
   game.activeMission = m;
-  setMissionName(def.title);
-  showTitleCard(`MISSION ${index + 1} · ${STORY_CAST[def.giver].name.toUpperCase()}`, def.title, def.blurb);
+  showTitleCard(`MISSION ${index + 1}/${STORY_MISSIONS.length} · ${STORY_CAST[def.giver].name.toUpperCase()}`, def.title, def.blurb);
   playSound('missionStart', game.player.pos);
   emitEvent('missionStarted', m);
   advanceStep(m);
@@ -93,7 +93,7 @@ function cleanupMission(m, keepPlayerVehicle = true) {
   for (const c of m.entities) if (!c.removed) { if (c.state === 'dead' || c.kind === 'npc') removeCharacter(c); else { c.missionTag = null; c.kind = c.kind === 'npc' ? 'ped' : c.kind; if (c.vehicle) { c.vehicle = null; removeCharacter(c); } } }
   for (const v of m.vehicles) if (!v.removed) { v.missionTag = null; if (v.driver !== game.player && !keepPlayerVehicle) removeVehicle(v); }
   for (const p of m.pickups) if (!p.removed) removePickup(p);
-  setObjective(''); setMissionName(''); setMissionTimer(null); setProgress(null);
+  setObjective(''); setMissionTimer(null); setProgress(null);
   game.flags.wantedHold = false;
   game.activeMission = null;
 }
@@ -122,14 +122,26 @@ export function failMission(reason) {
   refreshMissionStartMarker();
 }
 
-function spawnMissionEnemies(m, step) {
-  m.state.enemies = step.enemies.map((e, i) => {
+/** Counts a timed stage down on the mission banner; fails the mission and returns true when it runs out. */
+function stageTimeUp(m, step, dt) {
+  if (!step.timeLimit) return false;
+  if (m.state.time === undefined) m.state.time = step.timeLimit;
+  m.state.time -= dt; setMissionTimer(m.state.time);
+  if (m.state.time > 0) return false;
+  failMission('You ran out of time.');
+  return true;
+}
+
+function spawnMissionEnemies(m, step, list) {
+  const spawned = list.map((e, i) => {
     const c = spawnCharacter({ x: e.x, z: e.z, heading: Math.PI, kind: step.kind, look: step.look, weapon: step.weapon, health: step.kind === 'guard' ? 90 : 70 });
     c.missionTag = m.def.id; c.ai = { home: { x: e.x, z: e.z }, alert: false, strafe: i };
     m.entities.push(c);
     createMarker({ target: c, color: 0xff4040, radius: 0.9, kind: 'enemy' });
     return c;
   });
+  m.state.enemies = (m.state.enemies || []).concat(spawned);
+  return spawned;
 }
 
 /** Gangsters / guards: stand guard until the player is seen or shots are fired, then advance and shoot. */
@@ -156,12 +168,12 @@ const STEP_HANDLERS = {
     begin(m, step) { setObjective(''); m.state.done = false; playDialogue(step.lines, () => { m.state.done = true; }); },
     update(m) { return m.state.done && !isDialogueActive(); },
   },
-  giveWeapon: { begin(m, step) { giveWeapon(step.weapon, step.ammo); selectWeapon(step.weapon); showNotification(`<b>WEAPON</b>${step.weapon === 'smg' ? 'Mako SMG' : 'Coral 9 pistol'} added. Hold right mouse to aim, left to fire.`, 'gold', 5); }, update() { return true; } },
+  giveWeapon: { begin(m, step) { giveWeapon(step.weapon, step.ammo); selectWeapon(step.weapon); showNotification(`<b>WEAPON</b>${WEAPONS[step.weapon].name} added. Hold right mouse to aim, left to fire.`, 'gold', 5); }, update() { return true; } },
   giveArmor: { begin() { game.player.armor = 100; }, update() { return true; } },
   wanted: { begin(m, step) { setWantedLevel(step.stars); game.flags.wantedHold = !!step.hold; }, update() { return true; } },
   goto: {
     begin(m, step) { const p = resolvePoint(step.place || step.at); setMarker(m, { x: p.x, z: p.z, color: 0xffd166, radius: step.radius ? Math.min(step.radius, 5) : 2.4, icon: '', label: step.text }); m.state.r = step.radius || 3; },
-    update(m) { return isPlayerInMarker(m.marker, m.state.r - m.marker.radius); },
+    update(m, step, dt) { if (stageTimeUp(m, step, dt)) return false; return isPlayerInMarker(m.marker, m.state.r - m.marker.radius); },
   },
   needVehicle: {
     begin(m, step) { if (game.player.vehicle) m.state.skip = true; },
@@ -224,12 +236,32 @@ const STEP_HANDLERS = {
     update(m) { return !!m.state.got; },
   },
   eliminate: {
-    begin(m, step) { spawnMissionEnemies(m, step); },
+    // one group of enemies, or several `waves` that arrive as each is cleared; the HUD shows a kill counter
+    begin(m, step) {
+      const waves = step.waves || [step.enemies];
+      m.state.waves = waves; m.state.wave = 0; m.state.total = waves.reduce((n, w) => n + w.length, 0) + (step.boss ? 1 : 0);
+      spawnMissionEnemies(m, step, waves[0]);
+    },
     update(m, step, dt) {
       let alive = 0;
       for (const c of m.state.enemies) { if (c.state !== 'dead' && !c.removed) { alive++; updateMissionEnemy(c, dt); } }
-      setProgress(`${alive} REMAINING`, alive / m.state.enemies.length);
-      return alive === 0;
+      const kills = m.state.enemies.length - alive;
+      setProgress(`KILLS ${kills}/${m.state.total}`, kills / m.state.total);
+      if (alive > 0) return false;
+      if (m.state.wave < m.state.waves.length - 1) {
+        m.state.wave++;
+        for (const c of spawnMissionEnemies(m, step, m.state.waves[m.state.wave])) c.ai.alert = true;
+        showNotification(`<b>REINFORCEMENTS</b>Wave ${m.state.wave + 1} of ${m.state.waves.length} is moving in.`, 'warn', 4);
+        return false;
+      }
+      if (step.boss && !m.state.boss) {
+        const cast = STORY_CAST[step.boss], at = m.state.waves[0][0];
+        const [boss] = spawnMissionEnemies(m, { ...step, look: cast.look, weapon: 'smg' }, [at]);
+        boss.health = 160; boss.name = cast.name; boss.ai.alert = true; m.state.boss = boss;
+        showNotification(`<b>${cast.name.toUpperCase()}</b>The boss is out in the open. Finish it.`, 'warn', 5);
+        return false;
+      }
+      return true;
     },
   },
   hold: {
@@ -237,8 +269,8 @@ const STEP_HANDLERS = {
     update(m, step, dt) {
       if (isPlayerInMarker(m.marker)) m.state.t += dt;
       setProgress(step.label, m.state.t / step.seconds);
-      if (game.wanted.stars < 4) setWantedLevel(4);
-      if (m.state.t >= step.seconds) { game.flags.wantedHold = false; return true; }
+      if (game.wanted.stars < (step.stars || 4)) setWantedLevel(step.stars || 4);
+      if (m.state.t >= step.seconds) { game.flags.wantedHold = !!step.stars; return true; }
       return false;
     },
   },
@@ -261,7 +293,12 @@ const STEP_HANDLERS = {
   },
   loseWanted: {
     begin(m) { game.flags.wantedHold = false; },
-    update(m) { setProgress('HEAT', Math.max(0, 1 - game.wanted.unseen / (9 + game.wanted.stars * 5))); return game.wanted.stars === 0; },
+    update(m, step, dt) {
+      if (game.wanted.stars === 0) return true;
+      if (stageTimeUp(m, step, dt)) return false;
+      setProgress('HEAT', Math.max(0, 1 - game.wanted.unseen / getEscapeTime()));
+      return false;
+    },
   },
 };
 

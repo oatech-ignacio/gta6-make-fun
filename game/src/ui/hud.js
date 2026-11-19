@@ -1,23 +1,26 @@
-// Heads-up display: money, wanted stars, weapon + ammo, health/armour, clock, objective, prompts,
-// vehicle speedometer, district names, mission title cards and the big WASTED / PASSED banners.
+// Heads-up display core: money, clock, wanted stars, respect bar, health/armour, objective, prompts, crosshair,
+// title cards and the big WASTED / PASSED banners. The larger panels live in their own modules
+// (missionBanner, policePanel, weaponBar, vehiclePanel) and are updated from here.
 import { game } from '../core/gameState.js';
 import { onEvent } from '../core/eventBus.js';
 import { formatMoney, formatClock, formatTimer, clamp } from '../core/mathUtils.js';
-import { getDistrictAt, nearestStreetName } from '../world/cityLayout.js';
-import { WEAPONS, WEAPON_ICONS } from '../combat/weaponCatalog.js';
 import { getRespectRank } from '../systems/economy.js';
-import { UNITS_TO_MPH } from '../vehicles/vehicleCatalog.js';
+import { initMissionBanner, updateMissionBanner } from './missionBanner.js';
+import { initPolicePanel, updatePolicePanel } from './policePanel.js';
+import { initWeaponBar, updateWeaponBar } from './weaponBar.js';
+import { initVehiclePanel, updateVehiclePanel } from './vehiclePanel.js';
 import { cameraRig } from '../render/followCamera.js';
 
 const el = {};
 const prompts = {};
-let shownMoney = 0, moneyFlash = 0, lastDistrict = '', districtTimer = 0, titleTimer = 0, crosshairHit = 0, lastWeapon = '', radioTimer = 0, hurtFlash = 0, lastStars = -1;
+let shownMoney = 0, moneyFlash = 0, titleTimer = 0, crosshairHit = 0, radioTimer = 0, hurtFlash = 0, lastStars = -1;
 const STAR_SVG = '<svg viewBox="0 0 24 24"><path class="star" d="M12 1.8l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.9 5.6 21.4 7 14.3 1.7 9.3l7.2-.9z"/></svg>';
 
 export function initHud() {
-  for (const id of ['hud', 'mission-name', 'mission-timer', 'radio-banner', 'radio-name', 'radio-track', 'weapon-icon', 'weapon-name', 'weapon-ammo', 'clock', 'money', 'wanted-stars', 'respect-rank', 'respect-bar',
-    'minimap-frame', 'minimap', 'health-fill', 'armor-fill', 'district-name', 'vehicle-panel', 'vehicle-name', 'speed-value', 'vehicle-health-fill', 'objective', 'prompt', 'crosshair', 'progress-wrap', 'progress-label', 'progress-fill',
+  for (const id of ['hud', 'radio-banner', 'radio-name', 'radio-track', 'clock', 'money', 'wanted-stars', 'respect-label', 'respect-rank', 'respect-bar',
+    'minimap-frame', 'minimap', 'health-fill', 'armor-fill', 'objective', 'prompt', 'crosshair', 'progress-wrap', 'progress-label', 'progress-fill',
     'title-card', 'title-card-kicker', 'title-card-name', 'title-card-sub', 'big-banner', 'big-banner-text', 'big-banner-sub', 'damage-vignette', 'fade']) el[id] = document.getElementById(id);
+  initMissionBanner(); initPolicePanel(); initWeaponBar(); initVehiclePanel();
   el['wanted-stars'].innerHTML = STAR_SVG.repeat(5);
   shownMoney = game.money;
   onEvent('moneyChanged', (e) => { moneyFlash = e.amount < 0 ? -1.2 : 1.2; });
@@ -29,12 +32,6 @@ export function initHud() {
 
 export function setHudVisible(on) { el.hud.classList.toggle('hidden', !on); }
 export function setObjective(html) { if (el.objective.innerHTML !== html) el.objective.innerHTML = html || ''; }
-export function setMissionName(text) { el['mission-name'].textContent = text || ''; }
-export function setMissionTimer(seconds) {
-  const t = el['mission-timer'];
-  if (seconds === null || seconds === undefined) { t.classList.add('hidden'); return; }
-  t.classList.remove('hidden'); t.textContent = formatTimer(seconds); t.classList.toggle('low', seconds < 15);
-}
 export function setProgress(label, fraction) {
   if (label === null || label === undefined) { el['progress-wrap'].classList.add('hidden'); return; }
   el['progress-wrap'].classList.remove('hidden'); el['progress-label'].textContent = label;
@@ -60,13 +57,6 @@ export function setRadioBanner(name, track, seconds = 5) {
   el['radio-banner'].classList.remove('hidden'); radioTimer = seconds;
 }
 
-function updateWeaponPanel() {
-  const key = game.currentWeapon, w = WEAPONS[key];
-  if (key !== lastWeapon) { lastWeapon = key; el['weapon-icon'].innerHTML = WEAPON_ICONS[key]; el['weapon-name'].textContent = w.name.toUpperCase(); }
-  const a = game.ammo[key];
-  el['weapon-ammo'].innerHTML = a ? `${a.clip}<small>/ ${a.reserve}</small>` : '';
-}
-
 export function updateHud(dt) {
   const player = game.player;
   if (!player) return;
@@ -88,29 +78,17 @@ export function updateHud(dt) {
   frame.classList.toggle('flash-police', w.stars > 0 && !w.evading);
   frame.classList.toggle('alt', Math.floor(game.time * 3) % 2 === 0);
   const rank = getRespectRank();
-  el['respect-rank'].textContent = rank.name.toUpperCase();
+  const respectText = rank.next ? `RESPECT ${rank.respect}/${rank.nextAt}` : `RESPECT ${rank.respect} MAX`;
+  if (el['respect-label'].textContent !== respectText) el['respect-label'].textContent = respectText;
+  if (el['respect-rank'].textContent !== rank.name.toUpperCase()) el['respect-rank'].textContent = rank.name.toUpperCase();
   el['respect-bar'].firstElementChild.style.width = (rank.progress * 100).toFixed(0) + '%';
-  updateWeaponPanel();
+  updateMissionBanner(); updatePolicePanel(dt); updateWeaponBar(); updateVehiclePanel();
   // vitals
   el['health-fill'].style.width = clamp(player.health / player.maxHealth, 0, 1) * 100 + '%';
   el['health-fill'].parentElement.classList.toggle('low', player.health < 30);
   el['armor-fill'].style.width = clamp(player.armor / 100, 0, 1) * 100 + '%';
   hurtFlash = Math.max(0, hurtFlash - dt * 1.4);
   el['damage-vignette'].style.opacity = Math.max(hurtFlash, player.health < 25 && player.health > 0 ? 0.35 + Math.sin(game.time * 6) * 0.15 : 0).toFixed(2);
-  // vehicle panel
-  const v = player.vehicle;
-  el['vehicle-panel'].classList.toggle('hidden', !v);
-  if (v) {
-    el['vehicle-name'].textContent = v.spec.name;
-    el['speed-value'].textContent = Math.round(Math.abs(v.speed) * UNITS_TO_MPH);
-    el['vehicle-health-fill'].style.width = clamp(v.health / 100, 0, 1) * 100 + '%';
-  }
-  // district name
-  const district = getDistrictAt(player.pos.x, player.pos.z);
-  if (district.name !== lastDistrict) { lastDistrict = district.name; districtTimer = 6; }
-  districtTimer -= dt;
-  el['district-name'].innerHTML = `${district.name.toUpperCase()}<small>${nearestStreetName(player.pos.x, player.pos.z)}</small>`;
-  el['district-name'].style.opacity = game.mode === 'shot' ? 1 : clamp(districtTimer, 0, 1) * 0.6 + 0.4;
   // prompt (first non-empty channel wins)
   let prompt = null;
   for (const k of ['mission', 'shop', 'side', 'vehicle']) if (prompts[k]) { prompt = prompts[k]; break; }

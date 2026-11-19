@@ -1,4 +1,4 @@
-// The story of PALMERA HEAT as data: six chained missions, each a list of scripted steps with dialogue.
+// The story of PALMERA HEAT as data: eight chained missions in three acts, each a list of scripted steps with dialogue.
 // Step types are executed by missionRunner.js.
 import { PLACES, CAUSEWAY_Z } from '../world/cityLayout.js';
 
@@ -123,7 +123,66 @@ export const STORY_MISSIONS = [
       ] },
     ],
   },
+  {
+    id: 'four-star-checkout', title: 'Four-Star Checkout', giver: 'luz', place: 'safehouse', reward: { money: 9000, respect: 160 },
+    blurb: "Pike raids the motel for Crane's ledger. Outrun a four-star dragnet before the bay is sealed.",
+    steps: [
+      { type: 'dialogue', lines: [
+        { who: 'luz', text: "Pike just pulled into the lot with half of Bay Patrol. No warrant. He's here for Crane's ledger." },
+        { who: 'pike', text: '(megaphone) Marlowe! Quintero! Walk out with the book and you get a head start.' },
+        { who: 'dez', text: 'We are taking the head start. Not the walking part.' },
+      ] },
+      { type: 'giveArmor' },
+      { type: 'needVehicle', text: 'Get to <b>any vehicle</b> before Pike boxes the motel in.' },
+      { type: 'wanted', stars: 4, hold: true },
+      { type: 'hold', at: { x: 240, z: 48 }, radius: 16, seconds: 6, stars: 4, label: 'BREAKING THE CORDON', text: 'Smash through the <u>Bay Patrol cordon</u> at Lagoon and Paloma.' },
+      { type: 'loseWanted', timeLimit: 210, text: 'Four stars and a helicopter. <b>Lose Bay Patrol</b> before the bay is sealed.' },
+      { type: 'goto', place: 'chopShop', radius: 5, text: "Bring the ledger to <b>Odette's Auto</b>. She knows who to show it to." },
+      { type: 'dialogue', lines: [
+        { who: 'odette', text: "Every bribe Crane ever paid, in his own handwriting. Sugar, this isn't a ledger. It's a leash." },
+        { who: 'vega', text: "Nico Vega, Brine Kings. Crane hired my crew to take that book off you tonight. Pier 9. I thought you'd want to know before I do it." },
+        { who: 'odette', text: 'Then we clear the docks first. Come see me when you are loaded.' },
+      ] },
+    ],
+  },
+  {
+    id: 'low-tide', title: 'Low Tide', giver: 'odette', place: 'chopShop', reward: { money: 40000, respect: 320 },
+    blurb: "Crane's hired guns hold Pier 9. Clear the docks, then beat his boat to Mirador Lookout.",
+    steps: [
+      { type: 'dialogue', lines: [
+        { who: 'odette', text: "Vega has a dozen Brine Kings at Pier 9 and Crane's money in a duffel. Take the docks back, all of them." },
+        { who: 'luz', text: "Crane's yacht leaves from Mirador Lookout the minute it goes wrong. We need to be on that dock first." },
+        { who: 'dez', text: 'Clear the docks, catch the boat. Easy. Give me the loud one.' },
+      ] },
+      { type: 'giveWeapon', weapon: 'shotgun', ammo: 36 },
+      { type: 'giveWeapon', weapon: 'smg', ammo: 204 },
+      { type: 'giveArmor' },
+      { type: 'goto', place: 'warehouse', radius: 30, text: 'Drive to <b>Pier 9</b> in Rustwater Docks.' },
+      { type: 'eliminate', look: 'gang', kind: 'gang', weapon: 'pistol', boss: 'vega', text: 'Clear the docks: take down every <u>Brine King</u>, then Nico Vega.',
+        waves: [
+          [{ x: 90, z: 364 }, { x: 110, z: 368 }, { x: 100, z: 382 }, { x: 82, z: 388 }],
+          [{ x: 118, z: 386 }, { x: 78, z: 372 }, { x: 104, z: 394 }, { x: 92, z: 378 }],
+          [{ x: 100, z: 388 }, { x: 112, z: 376 }, { x: 86, z: 380 }, { x: 96, z: 368 }],
+        ] },
+      { type: 'collect', item: 'briefcase', at: { x: 100, z: 380 }, text: "Grab <b>Crane's payoff duffel</b>." },
+      { type: 'goto', place: 'lookout', radius: 7, timeLimit: 120, text: "Race to <b>Mirador Lookout</b> before Crane's boat casts off." },
+      { type: 'dialogue', lines: [
+        { who: 'crane', text: 'You could have had a very comfortable life parking my cars, Mr. Marlowe.' },
+        { who: 'luz', text: 'The ledger is already with the Palmera Courier. Front page, Sunday. Lt. Pike gets page two.' },
+        { who: 'pike', text: "Silas. I'm going to need you to step off the boat." },
+        { who: 'dez', text: 'Nice sunset. I hear it is back on the market.' },
+      ] },
+    ],
+  },
 ];
+
+/** The three acts of the story and the missions (by index) each one covers. */
+export const STORY_ACTS = [
+  { name: 'ACT I', title: 'Small Fish', from: 0, to: 2 },
+  { name: 'ACT II', title: 'The Aurora Job', from: 3, to: 5 },
+  { name: 'ACT III', title: 'Low Tide', from: 6, to: 7 },
+];
+export function getActForMission(index) { return STORY_ACTS.find((a) => index >= a.from && index <= a.to) || STORY_ACTS[STORY_ACTS.length - 1]; }
 
 export function getMissionStartPlace(mission) { return PLACES[mission.place]; }
 export function getMissionByIndex(index) { return STORY_MISSIONS[index] || null; }

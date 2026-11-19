@@ -8,7 +8,7 @@ import { spawnCharacter } from '../characters/characterEntity.js';
 import { npcShootAt } from '../combat/weaponFire.js';
 
 export function createPursuitBrain() {
-  return { mode: 'police', state: 'pursue', occupants: 2, path: [], repath: 0, losTimer: 0, los: false, stuck: 0, reverse: 0, reverseSteer: 0, officers: [], gunner: null, hasDriver: true };
+  return { mode: 'police', state: 'pursue', status: 'PURSUIT', occupants: 2, path: [], repath: 0, losTimer: 0, los: false, stuck: 0, reverse: 0, reverseSteer: 0, officers: [], gunner: null, hasDriver: true };
 }
 
 /** Put the unit's officers on the street beside their car. */
@@ -20,7 +20,7 @@ export function deployOfficers(v) {
     const cop = spawnCharacter({ x, z, heading: v.heading, kind: 'cop', look: swat ? 'swat' : 'cop', weapon: swat ? 'smg' : 'pistol', health: swat ? 130 : 80 });
     cop.homeVehicle = v; ai.officers.push(cop);
   }
-  ai.occupants = 0; ai.state = 'parked';
+  ai.occupants = 0; ai.state = 'parked'; ai.status = 'ON FOOT';
 }
 
 function aimPoint(v, ai, target, dist) {
@@ -49,7 +49,7 @@ export function updatePoliceCruiser(v, dt) {
   const dx = target.x - v.pos.x, dz = target.z - v.pos.z, dist = Math.hypot(dx, dz);
   const playerSpeed = player.vehicle ? Math.abs(player.vehicle.speed) : 0;
   if (ai.state === 'parked') {
-    c.throttle = 0; c.brake = 1; c.steer = 0;
+    c.throttle = 0; c.brake = 1; c.steer = 0; ai.status = 'ON FOOT';
     if (dist > 55) {            // suspect is getting away: officers pile back in and the chase resumes
       ai.occupants = 0;
       for (const cop of ai.officers) if (!cop.removed && cop.state !== 'dead' && cop.pos.distanceTo(v.pos) < 30) { cop.recall = true; ai.occupants++; }
@@ -79,6 +79,8 @@ export function updatePoliceCruiser(v, dt) {
     else throttle = 0.35;
   }
   c.throttle = throttle; c.brake = brake;
+  // what this unit is doing right now, for the police response panel
+  ai.status = !aim.direct ? 'FLANKING' : (dist < 16 && speed > 7 && playerSpeed > 3.5 ? 'RAMMING' : 'PURSUIT');
   if (throttle > 0.3 && Math.abs(speed) < 1.3 && v.age > 2) ai.stuck += dt; else ai.stuck = Math.max(0, ai.stuck - dt * 2);
   if (ai.stuck > 1.2) { ai.stuck = 0; ai.reverse = 1.1 + Math.random() * 0.5; ai.reverseSteer = -Math.sign(c.steer || 1) * 0.9; }
   // officers shoot from the window at 3+ stars
@@ -87,5 +89,9 @@ export function updatePoliceCruiser(v, dt) {
     ai.gunner.heading = Math.atan2(dx, dz);
     ai.gunner.fireCooldown = Math.max(0, ai.gunner.fireCooldown - dt);
     npcShootAt(ai.gunner, player, 0.22 + stars * 0.05);
+    if (ai.status !== 'RAMMING') ai.status = 'FIRING';
   }
 }
+
+/** Status word for the HUD (PURSUIT, RAMMING, FIRING, FLANKING, ON FOOT), set by the last AI update. */
+export function getCruiserStatus(v) { return v.ai && v.ai.mode === 'police' ? v.ai.status : null; }
