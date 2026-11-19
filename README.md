@@ -40,6 +40,7 @@ Everything is generated in code: the city geometry, canvas-drawn facades and neo
 - **Side hustles**: three street races on the Causeway and downtown, a crew of three recruitable allies (driver, mechanic, lookout) with hotkey abilities, and a garage with respray, plate swap and upgrades.
 - **Side hustles and progression**: taxi fares, chop shop, gun shop unlocks by respect rank, 12 golden flamingos, money, respect ranks, and a completion percentage that counts races, crew and garage upgrades.
 - **Interface**: HUD with rotating minimap, GPS route line, police and mission blips, wanted stars and IN SIGHT / SEARCHING status, a live police response panel with unit callsigns and status chips, respect rank, money, health and armour, a five-slot weapon bar with ammo, vehicle condition and speed, a compact radio chip, and portrait dialogue. Pause tabs cover MAP, STORY, STATS, CREW, SETTINGS, CONTROLS and SAVE. Three manual save slots plus mission autosaves live in localStorage; the start screen offers Continue and a real save list.
+- Keyboard: Z / X / C trigger crew abilities; E opens the garage when parked at a respray bay.
 
 ### Source layout
 
