@@ -70,6 +70,7 @@ export function clearWantedLevel(reason = 'lost') {
 
 function policeCanSeePlayer() {
   const p = game.player.pos;
+  if (game.flags.jamUntil > game.time) return false;   // the lookout's Blind Spot ability
   for (const c of game.characters) {
     if (c.kind !== 'cop' || c.state === 'dead' || c.state === 'down') continue;
     const d2 = (c.pos.x - p.x) ** 2 + (c.pos.z - p.z) ** 2;

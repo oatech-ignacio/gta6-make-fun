@@ -168,7 +168,7 @@ export function drawCityMap(canvas) {
   // places
   for (const key of Object.keys(PLACES)) { const p = PLACES[key]; drawBlip(ctx, X(p.x), Z(p.z), p.color, p.icon, 10.5); }
   for (const m of getMarkers()) {
-    if (m.persistent && m.kind !== 'missionStart') continue;
+    if (m.persistent && m.kind !== 'missionStart' && !m.onMap) continue;
     const x = X(m.x), z = Z(m.z);
     if (m.kind === 'missionStart' || m.kind === 'mission') { ctx.beginPath(); ctx.arc(x, z, 15 + Math.sin(game.time * 4) * 2, 0, 6.3); ctx.strokeStyle = hex(m.color); ctx.lineWidth = 2.5; ctx.stroke(); }
     drawBlip(ctx, x, z, hex(m.color), m.icon, m.kind === 'enemy' ? 5 : 12);

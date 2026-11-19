@@ -54,7 +54,7 @@ export function repaintVehicle(v, color) {
 
 export function damageVehicle(v, amount, source) {
   if (v.wrecked) return;
-  v.health -= amount;
+  v.health -= amount * (v.armorFactor || 1);   // garage armour plating
   if (v.health <= 0) { v.health = 0; v.burning = v.burning || 4.5; v.lastAttacker = source; }
 }
 

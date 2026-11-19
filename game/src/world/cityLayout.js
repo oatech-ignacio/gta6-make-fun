@@ -107,6 +107,7 @@ export const PLACES = {
   taxiDepot: { name: 'Sunfare Cab Depot', x: -38, z: 250, icon: 'T', color: '#ffe14d', heading: 0 },
   raceStart: { name: 'Boulevard Sprint', x: 437.5, z: -290, icon: 'R', color: '#c77dff', heading: 0 },
   respray: { name: "Odette's Respray", x: -100, z: 347, icon: 'S', color: '#4fe3d6', heading: Math.PI },
+  customs: { name: 'Coral Strand Customs', x: 446, z: -200, icon: 'S', color: '#4fe3d6', heading: 0 },
   lookout: { name: 'Mirador Lookout', x: -290, z: -372, icon: 'V', color: '#ffffff', heading: 0 },
 };
 

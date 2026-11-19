@@ -17,7 +17,7 @@ let shownMoney = 0, moneyFlash = 0, titleTimer = 0, crosshairHit = 0, radioTimer
 const STAR_SVG = '<svg viewBox="0 0 24 24"><path class="star" d="M12 1.8l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.9 5.6 21.4 7 14.3 1.7 9.3l7.2-.9z"/></svg>';
 
 export function initHud() {
-  for (const id of ['hud', 'radio-banner', 'radio-name', 'radio-track', 'clock', 'money', 'wanted-stars', 'respect-label', 'respect-rank', 'respect-bar',
+  for (const id of ['hud', 'radio-banner', 'radio-name', 'radio-track', 'clock', 'money', 'wanted-row', 'wanted-label', 'wanted-stars', 'respect-label', 'respect-rank', 'respect-bar',
     'minimap-frame', 'minimap', 'health-fill', 'armor-fill', 'objective', 'prompt', 'crosshair', 'progress-wrap', 'progress-label', 'progress-fill',
     'title-card', 'title-card-kicker', 'title-card-name', 'title-card-sub', 'big-banner', 'big-banner-text', 'big-banner-sub', 'damage-vignette', 'fade']) el[id] = document.getElementById(id);
   initMissionBanner(); initPolicePanel(); initWeaponBar(); initVehiclePanel();
@@ -71,6 +71,7 @@ export function updateHud(dt) {
   const w = game.wanted;
   if (w.stars !== lastStars) {
     lastStars = w.stars;
+    el['wanted-row'].classList.toggle('on', w.stars > 0); el['wanted-label'].classList.toggle('hidden', w.stars === 0);
     el['wanted-stars'].querySelectorAll('.star').forEach((s, i) => s.classList.toggle('on', i < w.stars));
   }
   el['wanted-stars'].classList.toggle('evading', w.evading && w.stars > 0);
@@ -91,7 +92,7 @@ export function updateHud(dt) {
   el['damage-vignette'].style.opacity = Math.max(hurtFlash, player.health < 25 && player.health > 0 ? 0.35 + Math.sin(game.time * 6) * 0.15 : 0).toFixed(2);
   // prompt (first non-empty channel wins)
   let prompt = null;
-  for (const k of ['mission', 'shop', 'side', 'vehicle']) if (prompts[k]) { prompt = prompts[k]; break; }
+  for (const k of ['mission', 'shop', 'garage', 'race', 'crew', 'side', 'vehicle']) if (prompts[k]) { prompt = prompts[k]; break; }
   el.prompt.classList.toggle('hidden', !prompt);
   if (prompt && el.prompt.innerHTML !== prompt) el.prompt.innerHTML = prompt;
   // crosshair

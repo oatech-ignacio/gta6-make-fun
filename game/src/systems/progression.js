@@ -42,10 +42,12 @@ export function updateProgression(dt) {
 export function getCompletion() {
   const s = game.stats, part = (label, have, of, weight) => ({ label, have: Math.min(have, of), of, weight, score: Math.min(have, of) / of * weight });
   const parts = [
-    part('Story missions', Math.min(game.missionIndex, STORY_MISSIONS.length), STORY_MISSIONS.length, 50),
-    part('Golden flamingos', s.flamingos, FLAMINGO_SPOTS.length, 15),
+    part('Story missions', Math.min(game.missionIndex, STORY_MISSIONS.length), STORY_MISSIONS.length, 45),
+    part('Golden flamingos', s.flamingos, FLAMINGO_SPOTS.length, 10),
     part('Districts visited', LAND_DISTRICTS.filter((k) => game.visited[k]).length, LAND_DISTRICTS.length, 10),
-    part('Boulevard Sprint wins', s.racesWon, 3, 5),
+    part('Street races won', Object.keys(game.races.wins).length, 3, 5),
+    part('Crew recruited', Object.keys(game.allies).length, 3, 5),
+    part('Garage upgrades', game.garage.engine + game.garage.armor + game.garage.tyres, 9, 5),
     part('Taxi fares', s.taxiFares, 10, 5),
     part('Cars stolen', s.carsStolen, 25, 5),
     part('Police escapes', s.copsEscaped, 10, 5),

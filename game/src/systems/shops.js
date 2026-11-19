@@ -1,17 +1,16 @@
-// Interactive locations: Iron Pelican Arms (weapons), Odette's respray and chop shop, the safehouse bed.
+// Interactive locations: Iron Pelican Arms (weapons), Odette's chop shop, the safehouse bed. Garages live in garage.js.
 import { game } from '../core/gameState.js';
 import { wasKeyPressed } from '../core/input.js';
 import { PLACES } from '../world/cityLayout.js';
 import { WEAPONS, giveWeapon, selectWeapon } from '../combat/weaponCatalog.js';
 import { spendMoney, addMoney, addRespect, getRespectRank } from './economy.js';
-import { clearWantedLevel } from './wantedLevel.js';
 import { saveGame } from './saveGame.js';
 import { createMarker } from '../missions/missionMarkers.js';
 import { setPrompt } from '../ui/hud.js';
 import { showNotification } from '../ui/notifications.js';
 import { formatMoney } from '../core/mathUtils.js';
 import { playSound } from '../core/cues.js';
-import { removeVehicle, repaintVehicle } from '../vehicles/vehiclePhysics.js';
+import { removeVehicle } from '../vehicles/vehiclePhysics.js';
 import { leaveVehicle } from '../vehicles/vehicleEntry.js';
 import { emitEvent } from '../core/eventBus.js';
 
@@ -29,7 +28,6 @@ export const GUN_SHOP_STOCK = [
 
 export function initShops() {
   createMarker({ x: PLACES.gunShop.x, z: PLACES.gunShop.z, color: 0xff5d5d, icon: 'G', label: PLACES.gunShop.name, radius: 1.6, persistent: true });
-  createMarker({ x: PLACES.respray.x, z: PLACES.respray.z, color: 0x4fe3d6, icon: 'S', label: PLACES.respray.name, radius: 3, persistent: true });
   createMarker({ x: PLACES.chopShop.x, z: PLACES.chopShop.z, color: 0xff9f43, icon: 'O', label: PLACES.chopShop.name, radius: 3, persistent: true });
   createMarker({ x: PLACES.safehouse.x, z: PLACES.safehouse.z, color: 0x6dff8f, icon: 'H', label: PLACES.safehouse.name, radius: 1.5, persistent: true });
 }
@@ -77,18 +75,6 @@ export function updateShops(dt) {
   if (!v && near(PLACES.gunShop, 2.4)) {
     prompt = '<kbd>E</kbd>Browse Iron Pelican Arms';
     if (wasKeyPressed('KeyE')) { menuOpen = true; game.flags.controlsLocked = true; renderGunMenu(); menuEl().classList.remove('hidden'); }
-  } else if (v && near(PLACES.respray, 4.5) && Math.abs(v.speed) < 6) {
-    const cost = 250 + game.wanted.stars * 150;
-    prompt = `<kbd>E</kbd>Respray and repair &middot; ${formatMoney(cost)}${game.wanted.stars ? ' &middot; shakes the cops' : ''}`;
-    if (wasKeyPressed('KeyE')) {
-      if (game.wanted.stars > 0 && game.wanted.seen) showNotification('<b>ODETTE</b>Not with half the precinct watching, sugar. Lose them first.', 'warn', 4);
-      else if (spendMoney(cost, 'respray')) {
-        v.health = 100; v.burning = 0;
-        repaintVehicle(v, game.rng.pick([0xff2d55, 0x12d6c9, 0xffc21a, 0x7a2bff, 0xf5f5f5, 0x1b1b22, 0xff6a00, 0x2f7d4f]));
-        clearWantedLevel('respray'); playSound('spray', player.pos);
-        showNotification('<b>ODETTE\'S RESPRAY</b>Fresh paint, clean plates. Drive slow for a block.', 'gold', 4);
-      } else playSound('empty', player.pos);
-    }
   } else if (v && near(PLACES.chopShop, 4.5) && Math.abs(v.speed) < 6 && !v.missionTag && !game.activeMission) {
     const value = v.isPolice ? 0 : Math.round(v.spec.value * (0.35 + 0.65 * v.health / 100) / 10) * 10;
     prompt = value ? `<kbd>E</kbd>Sell this ${v.spec.name} to Odette &middot; ${formatMoney(value)}` : 'Odette does not touch police property';

@@ -23,6 +23,12 @@ import { initHud, updateHud, setHudVisible, setObjective } from '../ui/hud.js';
 import { initMissions, updateMissions, refreshMissionStartMarker } from '../missions/missionRunner.js';
 import { updateMarkers } from '../missions/missionMarkers.js';
 import { initSideActivities, updateSideActivities } from '../missions/sideActivities.js';
+// street races, crew allies, garages
+import { initStreetRaces, updateStreetRaces } from '../races/streetRaces.js';
+import { updateCrew } from '../crew/crewAbilities.js';
+import { initGarage, updateGarage, isGarageOpen } from '../systems/garage.js';
+import { initCrewPanel, updateCrewPanel } from '../ui/crewPanel.js';
+import { initRaceHud, updateRaceHud } from '../ui/raceHud.js';
 // combat, pickups, shops, respawn
 import { initDamageSystem } from '../combat/damageSystem.js';
 import { selectWeapon } from '../combat/weaponCatalog.js';
@@ -71,6 +77,9 @@ export function simulateWorld(dt, realDt = dt) {
   updateWantedLevel(dt);
   updateMissions(dt, realDt);
   updateSideActivities(dt);
+  updateStreetRaces(dt);
+  updateCrew(dt);
+  updateGarage();
   updateProgression(dt);
   updateShops(dt);
   updatePickups(dt);
@@ -86,6 +95,7 @@ export function simulateWorld(dt, realDt = dt) {
   updateRadio(dt);
   updateContinuousSounds(dt);
   updateHud(realDt);
+  updateCrewPanel(); updateRaceHud();
   drawMinimap(minimapCanvas);
 }
 
@@ -107,7 +117,7 @@ function updateMenuBackdrop(dt) {
 function frameUpdate(realDt) {
   if (game.mode === 'menu') updateMenuBackdrop(realDt);
   else if (game.mode === 'play') {
-    const toggle = wasKeyPressed('KeyM') || wasKeyPressed('KeyP') || (wasKeyPressed('Escape') && !isShopMenuOpen());
+    const toggle = wasKeyPressed('KeyM') || wasKeyPressed('KeyP') || (wasKeyPressed('Escape') && !isShopMenuOpen() && !isGarageOpen());
     if (toggle) setPaused(!game.paused);
     if (game.paused) updatePauseMap();
     else if (!manualStepping) simulateWorld(realDt * game.timeScale, realDt);
@@ -188,7 +198,7 @@ function boot() {
   initPauseMap({ onResume: () => setPaused(false), onQuit: () => location.reload(), onGraphicsChanged: applyGraphicsSettings });
   resetProgress();
   createPlayer(PLACES.safehouse.x + 4, PLACES.safehouse.z + 12, 0);
-  initShops(); initSideActivities(); initWorldPickups(0);
+  initShops(); initGarage(); initSideActivities(); initStreetRaces(); initCrewPanel(); initRaceHud(); initWorldPickups(0);
   applyGraphicsSettings();
   // handles for tests and tooling (fast-forwarding the simulation from page.evaluate)
   window.__game = game;

@@ -14,7 +14,20 @@ import { renderSaveSlots } from './saveSlotList.js';
 import { settingsHtml, bindSettings } from './settingsForm.js';
 import { CONTROLS } from './startScreen.js';
 
-export const PAUSE_TABS = ['MAP', 'STORY', 'STATS', 'CREW', 'SETTINGS', 'CONTROLS', 'SAVE'];
+import { RACES } from '../races/raceCatalog.js';
+import { getCrewStatus } from '../crew/crewAbilities.js';
+import { GARAGES, UPGRADES, MAX_LEVEL, countUpgrades } from '../systems/garage.js';
+
+/** Street races, crew and garage progress; shown on the STATS page and beside the city map. */
+export function hustleRows() {
+  const crew = getCrewStatus();
+  return [
+    ['Street races won', `${Object.keys(game.races.wins).length} / ${RACES.length}`], ['Crew recruited', `${crew.filter((c) => c.hired).length} / ${crew.length}`],
+    ['Garage upgrades', `${countUpgrades()} / ${UPGRADES.length * MAX_LEVEL}`], ['Garages found', `${Object.keys(game.garage.visited).length} / ${GARAGES.length}`],
+  ];
+}
+
+export const PAUSE_TABS =['MAP', 'STORY', 'STATS', 'CREW', 'SETTINGS', 'CONTROLS', 'SAVE'];
 
 /** SVG ring showing overall completion, computed by the progression system. */
 export function completionRingHtml(size = '15vh') {
@@ -43,7 +56,8 @@ function statsHtml() {
     ['Story missions', `${Math.min(game.missionIndex, STORY_MISSIONS.length)} / ${STORY_MISSIONS.length}`], ['Missions failed', s.missionsFailed],
     ['Cars stolen', s.carsStolen], ['Distance driven', `${(s.distance / 1609).toFixed(1)} mi`], ['Cops escaped', s.copsEscaped], ['Highest wanted', s.highestWanted ? '★'.repeat(s.highestWanted) : 'Clean'],
     ['Kills', s.kills], ['Gang members', s.gangKills], ['Officers down', s.copsDown], ['Busted / Wasted', `${s.bustedCount} / ${s.wastedCount}`],
-    ['Taxi fares', s.taxiFares], ['Races won', s.racesWon], ['Flamingos', `${s.flamingos} / ${FLAMINGO_SPOTS.length}`], ['Time played', `${Math.floor(s.playTime / 60)} min`],
+    ...hustleRows(), ['Crew abilities used', s.crewCalls], ['Resprays / plate swaps', `${game.garage.resprays} / ${game.garage.plateSwaps}`],
+    ['Taxi fares', s.taxiFares], ['Race wins (all)', s.racesWon], ['Flamingos', `${s.flamingos} / ${FLAMINGO_SPOTS.length}`], ['Time played', `${Math.floor(s.playTime / 60)} min`],
   ];
   const ranks = RESPECT_RANKS.map((r, i) => `<div class="rank ${i <= rank.index ? 'have' : ''}"><b>${r.name.toUpperCase()}</b><small>${r.at} respect &middot; ${r.unlock}</small></div>`).join('');
   return `<div class="pm-cols2">
@@ -57,7 +71,8 @@ function crewHtml() {
     return `<div class="panel crew ${met ? '' : 'unmet'}"><canvas width="112" height="112" data-cast="${key}"></canvas><div><b>${met ? c.name.toUpperCase() : '? ? ?'}</b><small>${met ? c.role : 'Not met yet'}</small><p>${met ? c.bio : 'Keep working the story to cross paths.'}</p></div></div>`;
   }).join('');
   const met = Object.keys(STORY_CAST).filter((k) => k === 'dez' || game.crew[k]).length;
-  return `<h3 class="pm-title">CREW AND CONTACTS &middot; ${met}/${Object.keys(STORY_CAST).length} MET</h3><div class="pm-crew">${cards}</div>`;
+  const allies = getCrewStatus().map((c) => `<div class="panel ${c.hired ? '' : 'unmet'}"><b>${c.name.toUpperCase()} &middot; ${c.role.toUpperCase()}</b>${c.ability} [${c.label}] &middot; ${c.hired ? `${c.cooldown}s cooldown` : `recruit for ${formatMoney(c.price)} at the teal C blip`}<br>${c.blurb}</div>`).join('');
+  return `<h3 class="pm-title">CREW AND CONTACTS &middot; ${met}/${Object.keys(STORY_CAST).length} MET</h3><div class="pm-crew">${cards}</div><div class="pm-allies">${allies}</div>`;
 }
 
 function controlsHtml() {

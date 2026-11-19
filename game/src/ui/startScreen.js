@@ -10,7 +10,7 @@ import { STORY_SYNOPSIS } from '../missions/storyCharacters.js';
 export const CONTROLS = [
   ['W A S D', 'Walk / drive'], ['MOUSE', 'Look and aim'], ['SHIFT', 'Sprint'], ['SPACE', 'Jump / handbrake drift'],
   ['F', 'Enter, exit or steal a vehicle'], ['RIGHT MOUSE', 'Aim'], ['LEFT MOUSE', 'Punch / fire (drive-by in cars)'],
-  ['1 2 3 4 5 / Q', 'Fists, pistol, SMG, shotgun, rifle'], ['R', 'Reload on foot / next radio station in cars'], ['E', 'Interact, shops, siren in police cars'],
+  ['1 2 3 4 5 / Q', 'Fists, pistol, SMG, shotgun, rifle'], ['R', 'Reload on foot / next radio station in cars'], ['E', 'Interact: shops, garages, race starts, recruit crew, siren'], ['Z X C', 'Crew abilities: Decoy Run, Pit Stop, Blind Spot'],
   ['T', 'Start taxi fares in a Sunfare Cab'], ['H', 'Horn'], ['M / ESC', 'Pause menu: map, story, stats, crew, save'], ['ENTER', 'Skip dialogue'],
 ];
 

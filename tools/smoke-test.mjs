@@ -103,6 +103,38 @@ for (let index = 1; index < 8; index++) {
 }
 await page.evaluate(async () => { const g = window.__game; g.player.invulnerable = false; const mr = await import('./src/missions/missionRunner.js'); if (g.activeMission) mr.failMission('test'); const wl = await import('./src/systems/wantedLevel.js'); wl.clearWantedLevel(); });
 log('progress', await page.evaluate(async () => { const pr = await import('./src/systems/progression.js'); const g = window.__game; return { percent: pr.getCompletion().percent, respect: g.respect, rank: document.getElementById('respect-rank').textContent, label: document.getElementById('respect-label').textContent, crew: Object.keys(g.crew).length, gangKills: g.stats.gangKills, escapes: g.stats.copsEscaped, weaponSlots: document.querySelectorAll('#weapon-bar .ws').length, locked: document.querySelectorAll('#weapon-bar .ws.locked').length }; }));
+// crew: recruit the driver on foot with E, hire the others, then use all three abilities from the keyboard
+await page.evaluate(async () => { const g = window.__game; g.money = 60000; const ve = await import('./src/vehicles/vehicleEntry.js'), pc = await import('./src/characters/playerController.js'), { CREW } = await import('./src/crew/crewRoster.js'); if (g.player.vehicle) ve.leaveVehicle(g.player); pc.teleportPlayer(CREW[0].spot.x + 1.5, CREW[0].spot.z, 0); });
+await ff(0.3); await page.keyboard.press('KeyE'); await ff(0.3);
+const recruited = await page.evaluate(async () => { const g = window.__game, ca = await import('./src/crew/crewAbilities.js'), wl = await import('./src/systems/wantedLevel.js'), vp = await import('./src/vehicles/vehiclePhysics.js'), ve = await import('./src/vehicles/vehicleEntry.js'); const byKey = !!g.allies.sable; ca.hireCrew('gus'); ca.hireCrew('wren'); const car = vp.spawnVehicle('muscle', g.player.pos.x + 3, g.player.pos.z, 0); ve.enterVehicle(g.player, car); car.health = 35; wl.setWantedLevel(3); return byKey; });
+await ff(0.2); await page.keyboard.press('KeyZ'); await ff(0.2); await page.keyboard.press('KeyX'); await ff(0.2); await page.keyboard.press('KeyC'); await ff(0.4);
+const crew = await page.evaluate(() => { const g = window.__game; return { recruitedWithE: null, stars: g.wanted.stars, carHealth: g.player.vehicle.health, jammed: g.flags.jamUntil > g.time, calls: g.stats.crewCalls, chips: [...document.querySelectorAll('#crew-panel .cw em')].map((e) => e.textContent), label: document.getElementById('wanted-label').textContent }; });
+crew.recruitedWithE = recruited; log('crew', crew);
+if (!recruited || crew.stars !== 2 || crew.carHealth < 100 || !crew.jammed || crew.chips.length !== 3) errors.push('crew recruiting or abilities failed: ' + JSON.stringify(crew));
+// garage: drive into Odette's Respray, open the menu, repaint, buy one of each upgrade and swap plates
+await page.evaluate(() => { const g = window.__game, v = g.player.vehicle; g.flags.jamUntil = 0; g.wanted.seen = false; v.pos.set(-100, 0, 347); v.vx = v.vz = 0; });
+await ff(0.5); await page.keyboard.press('KeyE'); await ff(0.2);
+for (const key of ['Digit2', 'Digit7', 'Digit8', 'Digit9', 'Digit0']) { await page.keyboard.press(key); await ff(0.1); }
+const garage = await page.evaluate(() => { const g = window.__game, v = g.player.vehicle; return { open: !document.getElementById('garage-panel').classList.contains('hidden'), rows: document.querySelectorAll('#garage-panel .shop-row').length, garage: g.garage, topSpeed: +v.spec.maxSpeed.toFixed(1), stock: v.baseSpec.maxSpeed, paint: v.color.toString(16), stars: g.wanted.stars }; });
+log('garage', garage); await page.screenshot({ path: join(shots, 'smoke-garage.jpg'), type: 'jpeg', quality: 80 });
+await page.keyboard.press('KeyE'); await ff(0.2);
+if (!garage.open || garage.garage.engine !== 1 || garage.garage.armor !== 1 || garage.garage.tyres !== 1 || garage.garage.plateSwaps !== 1 || garage.stars !== 0 || !(garage.topSpeed > garage.stock)) errors.push('garage failed: ' + JSON.stringify(garage));
+// street race: enter the Neon Row Circuit with E, sit out the countdown, then take every checkpoint of both laps
+await page.evaluate(async () => { const g = window.__game, v = g.player.vehicle, { RACES } = await import('./src/races/raceCatalog.js'); const s = RACES[1].start; v.pos.set(s.x, 0, s.z); v.heading = s.heading; v.vx = v.vz = 0; });
+await ff(0.4); await page.keyboard.press('KeyE'); await ff(1);
+const grid = await page.evaluate(async () => { const sr = await import('./src/races/streetRaces.js'); const s = sr.getRaceStatus(); return s && { phase: s.phase, countdown: s.countdown, racers: s.racers, hud: document.getElementById('race-hud').textContent.replace(/\s+/g, ' ').trim() }; });
+log('race grid', grid); await ff(2.6);
+let hudMidRace = '';
+for (let i = 0; i < 30; i++) {
+  const over = await page.evaluate(async () => { const sr = await import('./src/races/streetRaces.js'), s = sr.getRaceStatus(); if (!s) return true; const v = window.__game.player.vehicle; v.pos.set(s.target.x, 0, s.target.z); v.vx = v.vz = 0; return false; });
+  if (over) break;
+  await ff(0.3);
+  if (i === 3) { hudMidRace = await page.evaluate(() => document.getElementById('race-hud').textContent.replace(/\s+/g, ' ').trim()); await page.screenshot({ path: join(shots, 'smoke-race.jpg'), type: 'jpeg', quality: 80 }); }
+}
+const raced = await page.evaluate(async () => { const g = window.__game, sr = await import('./src/races/streetRaces.js'); return { result: sr.getRaceResult(), wins: g.races.wins, best: g.races.best, racesWon: g.stats.racesWon, rivals: g.vehicles.filter((v) => v.ai && v.ai.mode === 'racer').length }; });
+log('race', { hud: hudMidRace, ...raced });
+if (!grid || grid.phase !== 'countdown' || grid.racers !== 4 || !raced.wins.neon || !raced.result || raced.result.position !== 1 || !/LAP/.test(hudMidRace)) errors.push('street race failed: ' + JSON.stringify({ grid, raced }));
+await ff(9);
 // taxi fares
 await page.evaluate(async () => { const g = window.__game; const vp = await import('./src/vehicles/vehiclePhysics.js'); const ve = await import('./src/vehicles/vehicleEntry.js'); if (g.player.vehicle) ve.leaveVehicle(g.player); const t = vp.spawnVehicle('taxi', 48, 100, 0); ve.enterVehicle(g.player, t); });
 await ff(0.2); await page.keyboard.press('KeyT'); await ff(3);

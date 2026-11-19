@@ -1,6 +1,6 @@
 // Save / load to localStorage: three manual slots plus an autosave slot. Each save holds progress, money,
 // respect, weapons, stats, districts visited, crew met, position and time of day, with a summary for menus.
-import { game } from '../core/gameState.js';
+import { game, newGarage } from '../core/gameState.js';
 import { onEvent } from '../core/eventBus.js';
 import { getDistrictAt } from '../world/cityLayout.js';
 import { getCompletion } from './progression.js';
@@ -21,6 +21,7 @@ export function buildSaveData() {
     money: game.money, respect: game.respect, missionIndex: game.missionIndex,
     weapons: game.weapons, ammo: game.ammo, currentWeapon: game.currentWeapon,
     stats: game.stats, visited: game.visited, crew: game.crew, timeOfDay: game.timeOfDay,
+    allies: game.allies, races: game.races, garage: game.garage,
     completion: getCompletion().percent,
     district: p ? getDistrictAt(p.pos.x, p.pos.z).name : '',
     player: p ? { x: p.pos.x, z: p.pos.z, heading: p.heading, health: p.health, armor: p.armor } : null,
@@ -64,6 +65,7 @@ export function applySave(data) {
   game.weapons = data.weapons || { fists: true }; game.ammo = data.ammo || {}; game.currentWeapon = data.currentWeapon || 'fists';
   Object.assign(game.stats, data.stats || {});
   game.visited = data.visited || {}; game.crew = data.crew || {};
+  game.allies = data.allies || {}; game.races = data.races || { wins: {}, best: {} }; game.garage = Object.assign(newGarage(), data.garage);
   game.timeOfDay = data.timeOfDay || 12;
   if (typeof data.slot === 'number') game.saveSlot = data.slot;
   return data.player;

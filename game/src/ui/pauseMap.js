@@ -7,7 +7,7 @@ import { getRespectRank } from '../systems/economy.js';
 import { STORY_MISSIONS } from '../missions/storyMissions.js';
 import { getDistrictAt } from '../world/cityLayout.js';
 import { renderSaveSlots } from './saveSlotList.js';
-import { PAUSE_TABS, completionRingHtml, pauseTabHtml, bindPauseTab } from './pauseTabs.js';
+import { PAUSE_TABS, completionRingHtml, pauseTabHtml, bindPauseTab, hustleRows } from './pauseTabs.js';
 
 let open = false, handlers = { onResume: null, onQuit: null }, mapCanvas = null, activeTab = 'MAP';
 
@@ -19,8 +19,8 @@ function summaryHtml() {
   const rows = [
     ['Cash', `<b class="cash">${formatMoney(game.money)}</b>`], ['Respect', `<b>${rank.respect} &middot; ${rank.name}</b>`],
     ['Missions', `<b>${Math.min(game.missionIndex, STORY_MISSIONS.length)} / ${STORY_MISSIONS.length}</b>`],
-    ['Cops escaped', `<b>${s.copsEscaped}</b>`],
   ];
+  void s;
   return rows.map((r) => `<div><span>${r[0]}</span>${r[1]}</div>`).join('');
 }
 
@@ -29,6 +29,7 @@ function mapTabHtml() {
     <div class="pm-side">
       <div class="panel pm-card pm-hero">${completionRingHtml('15vh')}<div><h3>DEZ MARLOWE &middot; ${getRespectRank().name.toUpperCase()}</h3><div class="pm-stats">${summaryHtml()}</div></div></div>
       <div class="panel pm-card"><h3>STORY · ${game.missionIndex}/8 COMPLETE</h3><div class="pm-story-list">${STORY_MISSIONS.map((m, i) => `<span class="${i < game.missionIndex ? 'done' : ''}">${i < game.missionIndex ? '✓' : i + 1} ${m.title}</span>`).join('')}</div></div>
+      <div class="panel pm-card"><h3>RACES &middot; CREW &middot; GARAGES</h3><div class="pm-stats">${hustleRows().map((r) => `<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')}</div></div>
       <div class="panel pm-card pm-saves"><h3>SAVE SLOTS</h3><div class="slots"></div></div>
     </div>`;
 }

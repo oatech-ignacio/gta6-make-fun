@@ -1,25 +1,20 @@
-// Side hustles: Sunfare taxi fares (press T in a cab) and the Boulevard Sprint checkpoint race.
+// Side hustle: Sunfare taxi fares (press T in a cab). Street races live in races/streetRaces.js.
 import { game } from '../core/gameState.js';
+import { isRaceActive } from '../races/streetRaces.js';
 import { wasKeyPressed } from '../core/input.js';
 import { PLACES, GRID_X, GRID_Z } from '../world/cityLayout.js';
 import { createMarker, removeMarker, isPlayerInMarker } from './missionMarkers.js';
 import { spawnCharacter, removeCharacter, randomCivilianLook, moveToward } from '../characters/characterEntity.js';
-import { addMoney, addRespect, getRespectRank, spendMoney } from '../systems/economy.js';
-import { setObjective, setPrompt, showBigBanner } from '../ui/hud.js';
+import { addMoney, addRespect, getRespectRank } from '../systems/economy.js';
+import { setObjective, setPrompt } from '../ui/hud.js';
 import { setMissionTimer, setMissionName } from '../ui/missionBanner.js';
 import { showNotification } from '../ui/notifications.js';
 import { formatMoney } from '../core/mathUtils.js';
 import { playSound } from '../core/cues.js';
 
 const taxi = { active: false, phase: 'idle', passenger: null, marker: null, timer: 0, fareDistance: 0, streak: 0 };
-const race = { active: false, index: 0, marker: null, time: 0, startMarker: null, best: null };
-
-// A lap of the east side: up the boulevard, through Neon Row, back along the beach.
-export const RACE_CHECKPOINTS = [[GRID_X[9], -144], [GRID_X[9], 48], [GRID_X[9], 240], [GRID_X[7], 240], [GRID_X[7], 48], [GRID_X[5], 48], [GRID_X[5], -144], [GRID_X[7], -144], [GRID_X[7], -336], [GRID_X[9], -336], [GRID_X[9], -290]];
-export const RACE_PAR_TIME = 92;
 
 export function initSideActivities() {
-  race.startMarker = createMarker({ x: PLACES.raceStart.x, z: PLACES.raceStart.z, color: 0xc77dff, icon: 'R', label: 'Boulevard Sprint', radius: 3.4, persistent: true, kind: 'shop' });
   createMarker({ x: PLACES.taxiDepot.x, z: PLACES.taxiDepot.z, color: 0xffe14d, icon: 'T', label: PLACES.taxiDepot.name, radius: 1.5, persistent: true, kind: 'shop', beam: false });
 }
 
@@ -54,10 +49,10 @@ function nextFare() {
 function updateTaxi(dt) {
   const player = game.player, v = player.vehicle, inCab = v && v.type === 'taxi';
   if (!taxi.active) {
-    if (inCab && !game.activeMission && !race.active) {
+    if (inCab && !game.activeMission && !isRaceActive()) {
       setPrompt('side', '<kbd>T</kbd>Start Sunfare taxi fares');
       if (wasKeyPressed('KeyT')) { taxi.active = true; setMissionName('Sunfare Cabs'); nextFare(); playSound('pickup', player.pos); }
-    } else if (!race.active) setPrompt('side', null);
+    } else setPrompt('side', null);
     return;
   }
   setPrompt('side', null);
@@ -95,51 +90,9 @@ function updateTaxi(dt) {
   }
 }
 
-function endRace(won) {
-  if (race.marker) removeMarker(race.marker);
-  race.marker = null; race.active = false;
-  setObjective(''); setMissionTimer(null); setMissionName('');
-  if (won === undefined) return;
-  if (won) {
-    const prize = getRespectRank().index >= 3 ? 3000 : 1200;
-    addMoney(prize, 'race'); addRespect(25); game.stats.racesWon++;
-    race.best = race.best ? Math.min(race.best, race.time) : race.time;
-    showBigBanner('RACE WON', `${race.time.toFixed(1)}s  ·  ${formatMoney(prize)}`, '');
-  } else showBigBanner('TOO SLOW', `Par time is ${RACE_PAR_TIME}s`, 'bad');
-  setTimeout(() => { if (!game.activeMission) document.getElementById('big-banner').classList.add('hidden'); }, 3500);
-}
-
-function updateRace(dt) {
-  const player = game.player, v = player.vehicle;
-  if (!race.active) {
-    if (v && !game.activeMission && !taxi.active && isPlayerInMarker(race.startMarker, 1)) {
-      setPrompt('side', '<kbd>E</kbd>Enter the Boulevard Sprint &middot; $200 buy-in');
-      if (wasKeyPressed('KeyE') && spendMoney(200, 'race')) {
-        Object.assign(race, { active: true, index: 0, time: 0 });
-        setMissionName('Boulevard Sprint');
-        race.marker = createMarker({ x: RACE_CHECKPOINTS[0][0], z: RACE_CHECKPOINTS[0][1], color: 0xc77dff, radius: 7, label: 'Checkpoint', icon: 'R' });
-        playSound('missionStart', player.pos);
-      }
-    }
-    return;
-  }
-  if (!v) return endRace(false);
-  race.time += dt;
-  setMissionTimer(RACE_PAR_TIME - race.time);
-  setObjective(`Checkpoint <b>${race.index + 1}/${RACE_CHECKPOINTS.length}</b> &middot; beat the par time.`);
-  if (race.time > RACE_PAR_TIME) return endRace(false);
-  if (isPlayerInMarker(race.marker, 2)) {
-    race.index++;
-    playSound('pickup', player.pos);
-    if (race.index >= RACE_CHECKPOINTS.length) return endRace(true);
-    race.marker.x = RACE_CHECKPOINTS[race.index][0]; race.marker.z = RACE_CHECKPOINTS[race.index][1];
-  }
-}
-
 export function updateSideActivities(dt) {
-  if (game.player.health <= 0) { if (taxi.active) endTaxiMode(); if (race.active) endRace(); return; }
+  if (game.player.health <= 0) { if (taxi.active) endTaxiMode(); return; }
   updateTaxi(dt);
-  updateRace(dt);
 }
 
-export function isSideActivityActive() { return taxi.active || race.active; }
+export function isSideActivityActive() { return taxi.active || isRaceActive(); }

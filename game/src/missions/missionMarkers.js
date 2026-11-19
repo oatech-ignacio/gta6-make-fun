@@ -22,7 +22,7 @@ function getBeamAlphaTexture() {
  */
 export function createMarker(options) {
   const m = { x: options.x || 0, z: options.z || 0, color: options.color || 0xffd166, icon: options.icon || '', label: options.label || '', radius: options.radius || 2.2,
-    persistent: !!options.persistent, target: options.target || null, kind: options.kind || 'mission', group: null, age: 0 };
+    persistent: !!options.persistent, target: options.target || null, kind: options.kind || 'mission', onMap: !!options.onMap, group: null, age: 0 };
   if (options.beam !== false) {
     const group = new THREE.Group(), r = m.radius;
     const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.09, 6, 36), new THREE.MeshBasicMaterial({ color: new THREE.Color(m.color).multiplyScalar(2.2) }));

@@ -9,7 +9,11 @@ import { nearestNode } from '../world/roadNetwork.js';
 
 export function setProgressState(money, respect, missionIndex) {
   game.money = money; game.respect = respect; game.missionIndex = missionIndex;
-  Object.assign(game.stats, { carsStolen: 23, taxiFares: 7, racesWon: 2, flamingos: 4, bustedCount: 1, wastedCount: 3, distance: 61000, kills: 12 });
+  Object.assign(game.stats, { carsStolen: 23, taxiFares: 7, racesWon: 2, flamingos: 4, bustedCount: 1, wastedCount: 3, distance: 61000, kills: 12, crewCalls: 9 });
+  // side progress that goes with those numbers: the crew is hired, two races are won, the car is part tuned
+  game.allies = { sable: true, gus: true, wren: true };
+  game.races = { wins: { boulevard: true, neon: true }, best: { boulevard: 84.2, neon: 71.6 } };
+  Object.assign(game.garage, { engine: 2, armor: 1, tyres: 1, resprays: 5, plateSwaps: 2, visited: { respray: true, customs: true } });
 }
 
 export function pursuitCruiser(x, z, heading, speed, type = 'police') {
