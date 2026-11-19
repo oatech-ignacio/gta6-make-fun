@@ -29,7 +29,7 @@ function select(id) { document.querySelectorAll('#start-screen .menu button').fo
 function showSaves() {
   select('ss-load');
   const div = sheet('<h2>LOAD GAME</h2><div class="slots"></div><p class="hint">Three save slots and an autosave. Save from the pause menu or by sleeping at the motel.</p>');
-  renderSaveSlots(div.querySelector('.slots'), 'LOAD', (slot, data) => { if (data) callbacks.onLoad(data); });
+  renderSaveSlots(div.querySelector('.slots'), 'LOAD', (slot, data) => { if (data) callbacks.onLoad(data); }, false);
 }
 
 function showControls() {

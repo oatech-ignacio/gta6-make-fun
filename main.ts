@@ -15,7 +15,7 @@
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-game.ts';
@@ -39,6 +39,10 @@ if (shots.length < 3 || shots.length > 4) {
 mkdirSync(out, { recursive: true });
 cpSync(join(here, 'game'), join(out, 'game'), { recursive: true });
 mkdirSync(join(out, 'screenshots'), { recursive: true });
+// Remove replaced captures when packaging repeatedly into the same output directory.
+for (const file of readdirSync(join(out, 'screenshots'))) {
+  if (/\.(png|jpe?g)$/i.test(file) && !shots.includes(file)) unlinkSync(join(out, 'screenshots', file));
+}
 if (existsSync(shotsDir)) cpSync(shotsDir, join(out, 'screenshots'), { recursive: true });
 
 // The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the

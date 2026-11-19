@@ -12,8 +12,8 @@ function slotHtml({ slot, data }, verb) {
 }
 
 /** Renders the list into `host`; `onPick(slot, data)` fires when a usable slot is clicked. verb: 'LOAD' | 'SAVE'. */
-export function renderSaveSlots(host, verb, onPick) {
-  const saves = listSaves();
+export function renderSaveSlots(host, verb, onPick, includeAuto = true) {
+  const saves = listSaves().filter((s) => includeAuto || s.slot !== AUTOSAVE_SLOT);
   host.innerHTML = saves.map((s) => slotHtml(s, verb)).join('');
   host.querySelectorAll('.slot').forEach((btn, i) => { btn.onclick = () => onPick(saves[i].slot, saves[i].data); });
 }

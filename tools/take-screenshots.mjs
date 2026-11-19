@@ -2,7 +2,7 @@
 // screenshot mode (index.html?shot=<name>&seed=1) in headless system Chrome and writes JPEGs to screenshots/.
 //
 //   npm install --no-save playwright-core
-//   node tools/take-screenshots.mjs [--only chase,street] [--out .tools/shots] [--query "shot=chase&seed=1&hour=19"]
+//   node tools/take-screenshots.mjs [--only chase,onfoot] [--out .tools/shots] [--query "shot=chase&seed=1&hour=19"]
 import { createServer } from 'node:http';
 import { createReadStream, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { extname, join, normalize, resolve, sep } from 'node:path';
@@ -20,8 +20,8 @@ const MAX_BYTES = 240 * 1024;
 
 const SHOTS = [
   { file: '1-chase.jpg', name: 'chase' },
-  { file: '2-street.jpg', name: 'street' },
-  { file: '3-mission.jpg', name: 'mission' },
+  { file: '2-onfoot.jpg', name: 'onfoot' },
+  { file: '3-start.jpg', name: 'start' },
   { file: '4-map.jpg', name: 'map' },
 ];
 
@@ -44,11 +44,37 @@ async function captureShot(page, base, shot) {
   await page.goto(`${base}/index.html?${query}`, { waitUntil: 'load' });
   await page.waitForFunction('window.__shotReady === true', null, { timeout: 180000 });
   await page.waitForTimeout(400);
+  const checks = await page.evaluate(async (name) => {
+    const g = window.__game;
+    const visible = (el) => el && !el.closest('.hidden') && el.getBoundingClientRect().width > 0;
+    const errors = [];
+    const pairs = [['mission-banner', 'radio-banner'], ['radio-banner', 'hud-topright'],
+      ['weapon-bar', 'vehicle-panel'], ['weapon-bar', 'foot-panel'], ['dialogue', 'hud-bottomright'],
+      ['objective', 'hud-bottomright'], ['dialogue', 'objective'], ['progress-wrap', 'dialogue']];
+    for (const [a, b] of pairs) {
+      const ea = document.getElementById(a), eb = document.getElementById(b);
+      if (!visible(ea) || !visible(eb)) continue;
+      const x = ea.getBoundingClientRect(), y = eb.getBoundingClientRect();
+      if (Math.min(x.right, y.right) - Math.max(x.left, y.left) > 1 && Math.min(x.bottom, y.bottom) - Math.max(x.top, y.top) > 1) errors.push(`${a} overlaps ${b}`);
+    }
+    if (name === 'chase' && (!g.player.vehicle || g.wanted.stars !== 4 || !g.helicopter?.active)) errors.push('incomplete chase state');
+    if (name === 'onfoot' && (g.player.vehicle || g.wanted.stars !== 2 || g.activeMission?.step.type !== 'eliminate')) errors.push('incomplete gunfight state');
+    if (name === 'map' || name === 'start') {
+      const selector = name === 'map' ? '#pause-map .slot' : '#start-screen .slot';
+      const slots = [...document.querySelectorAll(selector)];
+      if (slots.length !== 3 || slots.filter((s) => s.classList.contains('empty')).length !== 1) errors.push('expected two saves and one empty slot');
+      for (const slot of slots) if (slot.getBoundingClientRect().bottom > 647 && name === 'map') errors.push('clipped map save slot');
+    }
+    return { errors, vehicles: g.vehicles.length, pedestrians: g.characters.filter((c) => c.kind === 'ped').length };
+  }, shot.name);
+  if (checks.errors.length) throw new Error(`${shot.name}: ${checks.errors.join('; ')}`);
+
   let quality = 84, buffer;
   do {
     buffer = await page.screenshot({ type: 'jpeg', quality });
     quality -= 6;
   } while (buffer.length > MAX_BYTES && quality > 30);
+  if (buffer.length > MAX_BYTES) throw new Error(`${shot.file} exceeds 240 KiB`);
   const target = join(outDir, shot.file);
   writeFileSync(target, buffer);
   console.log(`${shot.file}  ${(buffer.length / 1024).toFixed(1)} KiB  (quality ${quality + 6})`);

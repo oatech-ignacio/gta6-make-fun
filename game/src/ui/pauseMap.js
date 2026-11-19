@@ -4,9 +4,9 @@ import { game } from '../core/gameState.js';
 import { formatMoney, formatClock } from '../core/mathUtils.js';
 import { drawCityMap } from './minimap.js';
 import { getRespectRank } from '../systems/economy.js';
-import { getNextMissionInfo } from '../missions/missionProgress.js';
 import { STORY_MISSIONS } from '../missions/storyMissions.js';
-import { PLACES, getDistrictAt } from '../world/cityLayout.js';
+import { getDistrictAt } from '../world/cityLayout.js';
+import { renderSaveSlots } from './saveSlotList.js';
 import { PAUSE_TABS, completionRingHtml, pauseTabHtml, bindPauseTab } from './pauseTabs.js';
 
 let open = false, handlers = { onResume: null, onQuit: null }, mapCanvas = null, activeTab = 'MAP';
@@ -18,30 +18,18 @@ function summaryHtml() {
   const s = game.stats, rank = getRespectRank();
   const rows = [
     ['Cash', `<b class="cash">${formatMoney(game.money)}</b>`], ['Respect', `<b>${rank.respect} &middot; ${rank.name}</b>`],
-    ['Missions', `<b>${Math.min(game.missionIndex, STORY_MISSIONS.length)} / ${STORY_MISSIONS.length}</b>`], ['Wanted', `<b>${'★'.repeat(game.wanted.stars) || 'Clean'}</b>`],
-    ['Cars stolen', `<b>${s.carsStolen}</b>`], ['Cops escaped', `<b>${s.copsEscaped}</b>`],
+    ['Missions', `<b>${Math.min(game.missionIndex, STORY_MISSIONS.length)} / ${STORY_MISSIONS.length}</b>`],
+    ['Cops escaped', `<b>${s.copsEscaped}</b>`],
   ];
   return rows.map((r) => `<div><span>${r[0]}</span>${r[1]}</div>`).join('');
 }
 
-function nextJobHtml() {
-  const next = getNextMissionInfo();
-  if (!next) return '<div class="mrow done"><i>✓</i><span><b>Story complete</b><br><em>Palmera Bay is yours.</em></span></div>';
-  return `<div class="mrow next"><i>${next.number}</i><span><b>${next.title}</b> &middot; ${next.giver}<br><em>${next.blurb}</em></span></div>`;
-}
-
-function legendHtml() {
-  const keys = ['safehouse', 'bait', 'club', 'chopShop', 'gunShop', 'bank', 'hospital', 'policeStation', 'taxiDepot', 'raceStart', 'respray', 'mansion'];
-  return keys.map((k) => `<span><i style="background:${PLACES[k].color}">${PLACES[k].icon}</i>${PLACES[k].name}</span>`).join('');
-}
-
 function mapTabHtml() {
-  const next = getNextMissionInfo();
   return `<div class="pm-mapwrap"><canvas id="pm-canvas" width="1140" height="820"></canvas></div>
     <div class="pm-side">
       <div class="panel pm-card pm-hero">${completionRingHtml('15vh')}<div><h3>DEZ MARLOWE &middot; ${getRespectRank().name.toUpperCase()}</h3><div class="pm-stats">${summaryHtml()}</div></div></div>
-      <div class="panel pm-card"><h3>${next ? `NEXT JOB &middot; ${next.act} &middot; MISSION ${next.number}/${next.total}` : 'STORY'}</h3><div class="pm-mission">${nextJobHtml()}</div></div>
-      <div class="panel pm-card"><h3>LEGEND</h3><div class="pm-legend">${legendHtml()}</div></div>
+      <div class="panel pm-card"><h3>STORY · ${game.missionIndex}/8 COMPLETE</h3><div class="pm-story-list">${STORY_MISSIONS.map((m, i) => `<span class="${i < game.missionIndex ? 'done' : ''}">${i < game.missionIndex ? '✓' : i + 1} ${m.title}</span>`).join('')}</div></div>
+      <div class="panel pm-card pm-saves"><h3>SAVE SLOTS</h3><div class="slots"></div></div>
     </div>`;
 }
 
@@ -52,7 +40,7 @@ export function renderPauseMap() {
     ${activeTab === 'MAP' ? mapTabHtml() : `<div class="pm-page">${pauseTabHtml(activeTab)}</div>`}
     <div class="pm-foot"><button id="pm-resume">RESUME</button><button id="pm-quit">MAIN MENU</button><span class="keys">M / ESC resume &middot; click a tab &middot; autosaves after every mission</span></div>`;
   mapCanvas = document.getElementById('pm-canvas');
-  if (mapCanvas) drawCityMap(mapCanvas); else bindPauseTab(activeTab, root.querySelector('.pm-page'), handlers);
+  if (mapCanvas) { drawCityMap(mapCanvas); renderSaveSlots(root.querySelector('.pm-saves .slots'), 'LOAD', () => showPauseTab('SAVE'), false); } else bindPauseTab(activeTab, root.querySelector('.pm-page'), handlers);
   root.querySelectorAll('.pm-tabs button').forEach((b) => { b.onclick = () => showPauseTab(b.dataset.tab); });
   document.getElementById('pm-resume').onclick = () => handlers.onResume && handlers.onResume();
   document.getElementById('pm-quit').onclick = () => handlers.onQuit && handlers.onQuit();

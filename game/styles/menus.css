@@ -114,3 +114,14 @@
 .crew { display: flex; gap: 1vw; padding: 1vh 1vw; align-items: center; } .crew canvas { width: 11vh; height: 11vh; border-radius: 0.8vh; border: 2px solid rgba(255,255,255,0.3); flex: none; }
 .crew b { font-family: var(--display); font-weight: 400; font-size: 2.5vh; letter-spacing: 0.08em; color: var(--gold); } .crew small { margin-left: 0.8vw; font-size: 1.9vh; color: var(--teal); letter-spacing: 0.1em; text-transform: uppercase; }
 .crew p { margin: 0.3vh 0 0; font-size: 2vh; line-height: 1.25; color: #e4dcf5; } .crew.unmet canvas { filter: brightness(0) opacity(0.5); } .crew.unmet b { color: rgba(255,255,255,0.5); }
+
+/* Compact map-side summaries leave the whole city visible beside progression and saves. */
+.pm-story-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5vh 0.6vw; font-size: 2vh; color: #bcb3d4; }
+.pm-story-list .done { color: #8fffb2; }
+.pm-saves .slot { padding: 0.5vh 0.6vw; gap: 0.5vw; }
+.pm-saves .slot i { width: 4vw; font-size: 2vh; }
+.pm-saves .slot b { font-size: 2vh; }
+.pm-saves .slot small { font-size: 1.7vh; }
+.pm-saves .slot em { font-size: 2.4vh; }
+.pm-saves .slot strong { display: none; }
+#start-screen .menu button small { display: block; margin: 0.3vh 0 0; }
