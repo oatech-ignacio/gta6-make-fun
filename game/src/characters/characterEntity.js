@@ -91,6 +91,7 @@ export function updateCharacterPhysics(c, dt) {
     c.knockVel.x *= Math.exp(-4 * dt); c.knockVel.z *= Math.exp(-4 * dt);
   }
   c.pos.x += c.vel.x * dt; c.pos.z += c.vel.z * dt;
+  if (!Number.isFinite(c.pos.x + c.pos.z)) { console.error('NaN character', c.kind, c.state, JSON.stringify(c.vel), JSON.stringify(c.knockVel), c.panic, JSON.stringify(c.fleeFrom), c.vehicle && c.vehicle.type); c.pos.set(0, 0, 0); }
   c.moveSpeed = damp(c.moveSpeed, c.state === 'down' || c.state === 'dead' ? 0 : Math.hypot(c.vel.x, c.vel.z), 12, dt);
   if (c.jumpVel !== 0 || c.jumpY > 0) {
     c.jumpVel -= 16 * dt; c.jumpY += c.jumpVel * dt;

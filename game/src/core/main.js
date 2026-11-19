@@ -41,7 +41,7 @@ import { runScreenshotScene } from '../shots/screenshotDirector.js';
 
 const params = new URLSearchParams(location.search);
 const shotName = params.get('shot');
-let menuAngle = 0.6;
+let menuAngle = 0.6, manualStepping = false;
 
 /** One simulation step of the whole world. `dt` is scaled game time, `realDt` is wall-clock time. */
 export function simulateWorld(dt, realDt = dt) {
@@ -93,9 +93,9 @@ function frameUpdate(realDt) {
     const toggle = wasKeyPressed('KeyM') || wasKeyPressed('KeyP') || (wasKeyPressed('Escape') && !isShopMenuOpen());
     if (toggle) setPaused(!game.paused);
     if (game.paused) updatePauseMap();
-    else simulateWorld(realDt * game.timeScale, realDt);
+    else if (!manualStepping) simulateWorld(realDt * game.timeScale, realDt);
   }
-  endInputFrame();
+  if (!manualStepping || game.paused) endInputFrame();
 }
 
 function frameRender() { renderFrame(lighting.exposure); }
@@ -169,7 +169,12 @@ function boot() {
   applyGraphicsSettings();
   // handles for tests and tooling (fast-forwarding the simulation from page.evaluate)
   window.__game = game;
-  window.__debug = { simulateWorld, stepSimulation, renderOnce, beginPlay, setPaused, setTimeOfDay };
+  window.__debug = {
+    simulateWorld, stepSimulation, renderOnce, beginPlay, setPaused, setTimeOfDay,
+    /** Tests drive the clock themselves: fastForward() steps the world and consumes input edges per step. */
+    setManualStepping: (on) => { manualStepping = on; },
+    fastForward: (seconds, step = 1 / 30) => { for (let i = 0; i < Math.round(seconds / step); i++) { if (!game.paused) simulateWorld(step * game.timeScale, step); endInputFrame(); } },
+  };
   if (shotName) {
     game.mode = 'shot';
     runScreenshotScene(shotName, { simulateWorld, render: frameRender, params }).then(() => { window.__shotReady = true; });

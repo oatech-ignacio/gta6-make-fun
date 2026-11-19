@@ -4,6 +4,7 @@ import { game } from '../core/gameState.js';
 import { GRID_X, GRID_Z, ROAD_HALF, WORLD_BOUNDS, DISTRICTS, CAUSEWAY_Z, BEACH_X, listCityBlocks, PLACES, AVENUE_NAMES, STREET_NAMES } from '../world/cityLayout.js';
 import { getMarkers } from '../missions/missionMarkers.js';
 import { cameraRig } from '../render/followCamera.js';
+import { findNodePath, nearestNode } from '../world/roadNetwork.js';
 
 const SCALE = 2;      // base map pixels per metre
 let baseMap = null;
@@ -47,6 +48,33 @@ export function buildBaseMap() {
 
 function getBaseMap() { return baseMap || buildBaseMap(); }
 
+const route = { points: [], time: -9 };
+/** GPS line: the road route from the player to the current objective (or the next mission start). */
+export function getRoutePoints() {
+  if (game.time - route.time < 0.5 && game.time >= route.time) return route.points;
+  route.time = game.time; route.points = [];
+  const markers = getMarkers(), target = markers.find((m) => !m.persistent && (m.kind === 'mission' || m.kind === 'target')) || markers.find((m) => m.kind === 'missionStart');
+  if (!target || !game.player) return route.points;
+  const net = game.city.network, p = game.player.pos;
+  const path = findNodePath(net, nearestNode(net, p.x, p.z).id, nearestNode(net, target.x, target.z).id);
+  // drop the first/last node when the player or the target is already past it
+  const pts = path.map((id) => ({ x: net.nodes[id].x, z: net.nodes[id].z }));
+  const between = (a, b, c) => (b.x - a.x) * (c.x - b.x) + (b.z - a.z) * (c.z - b.z) < 0;
+  if (pts.length > 1 && between(p, pts[0], pts[1])) pts.shift();
+  if (pts.length > 1 && between(pts[pts.length - 2], pts[pts.length - 1], target)) pts.pop();
+  route.points = [{ x: p.x, z: p.z }, ...pts, { x: target.x, z: target.z }];
+  return route.points;
+}
+
+function strokeRoute(ctx, mapX, mapZ, width) {
+  const pts = getRoutePoints();
+  if (pts.length < 2) return;
+  ctx.beginPath(); pts.forEach((q, i) => (i ? ctx.lineTo(mapX(q.x), mapZ(q.z)) : ctx.moveTo(mapX(q.x), mapZ(q.z))));
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.strokeStyle = 'rgba(20,10,30,0.8)'; ctx.lineWidth = width + 3; ctx.stroke();
+  ctx.strokeStyle = '#ffd166'; ctx.lineWidth = width; ctx.stroke();
+}
+
 function drawBlip(ctx, x, y, color, icon, size = 7) {
   ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2);
   ctx.fillStyle = color; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#000'; ctx.stroke();
@@ -73,6 +101,7 @@ export function drawMinimap(canvas) {
   ctx.transform(-fz * zoom, -fx * zoom, fx * zoom, -fz * zoom, 0, 0);
   ctx.translate(-p.x, -p.z);
   ctx.drawImage(getBaseMap(), WORLD_BOUNDS.minX, WORLD_BOUNDS.minZ, WORLD_BOUNDS.maxX - WORLD_BOUNDS.minX, WORLD_BOUNDS.maxZ - WORLD_BOUNDS.minZ);
+  strokeRoute(ctx, (x) => x, (z) => z, 5);
   ctx.restore();
   const toScreen = (x, z) => { const dx = x - p.x, dz = z - p.z; return [cx + (-fz * dx + fx * dz) * zoom, cy + (-fx * dx - fz * dz) * zoom]; };
   const edge = W / 2 - 12;
@@ -113,35 +142,36 @@ export function drawMinimap(canvas) {
 /** Full city map for the pause screen: north-up, labelled districts and streets, legend icons, live blips. */
 export function drawCityMap(canvas) {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height, base = getBaseMap();
-  const view = { minX: -540, maxX: 905, minZ: -440, maxZ: 440 };
+  const view = { minX: -520, maxX: 895, minZ: -425, maxZ: 425 };
   const s = Math.min(W / (view.maxX - view.minX), H / (view.maxZ - view.minZ));
   const ox = (W - (view.maxX - view.minX) * s) / 2 - view.minX * s, oz = (H - (view.maxZ - view.minZ) * s) / 2 - view.minZ * s;
   const X = (x) => ox + x * s, Z = (z) => oz + z * s;
   ctx.fillStyle = '#0d2b4a'; ctx.fillRect(0, 0, W, H);
   ctx.drawImage(base, X(WORLD_BOUNDS.minX), Z(WORLD_BOUNDS.minZ), (WORLD_BOUNDS.maxX - WORLD_BOUNDS.minX) * s, (WORLD_BOUNDS.maxZ - WORLD_BOUNDS.minZ) * s);
   // street names
-  ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = `600 ${Math.max(8, 9.5 * s)}px Arial, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = `700 ${Math.max(10, 11 * s)}px Arial, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   AVENUE_NAMES.forEach((n, i) => { ctx.save(); ctx.translate(X(GRID_X[i]), Z(-372)); ctx.rotate(-Math.PI / 2); ctx.fillText(n.toUpperCase(), 0, 0); ctx.restore(); });
   ctx.textAlign = 'right';
   STREET_NAMES.forEach((n, j) => ctx.fillText(n.toUpperCase(), X(-448), Z(GRID_Z[j])));
   // district labels
-  const labels = [['suburbs', -288, 0], ['downtown', 96, 60], ['market', 96, -288], ['beach', 384, -60], ['docks', -40, 300], ['island', 790, -260], ['causeway', 610, -122]];
+  const labels = [['suburbs', -288, 20], ['downtown', 96, 96], ['market', 96, -312], ['beach', 384, 290], ['docks', -90, 372], ['island', 790, -262], ['causeway', 590, -120]];
   ctx.textAlign = 'center';
   for (const [key, x, z] of labels) {
     const d = DISTRICTS[key], big = key !== 'causeway';
-    ctx.font = `italic 900 ${big ? 21 * s + 8 : 11 * s + 6}px "Arial Black", Impact, Arial, sans-serif`;
+    ctx.font = `italic 900 ${big ? 24 * s + 9 : 12 * s + 7}px "Arial Black", Impact, Arial, sans-serif`;
     ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(8,6,20,0.85)'; ctx.strokeText(d.name.toUpperCase(), X(x), Z(z));
     ctx.fillStyle = d.color; ctx.fillText(d.name.toUpperCase(), X(x), Z(z));
   }
   ctx.font = `italic 700 ${13 * s + 6}px Arial, sans-serif`; ctx.fillStyle = 'rgba(160,210,255,0.7)';
   ctx.fillText('P A L M E R A   B A Y', X(700), Z(240)); ctx.fillText('ATLANTIC SHALLOWS', X(700), Z(-400));
+  strokeRoute(ctx, X, Z, 4.5);
   // places
-  for (const key of Object.keys(PLACES)) { const p = PLACES[key]; drawBlip(ctx, X(p.x), Z(p.z), p.color, p.icon, 8.5); }
+  for (const key of Object.keys(PLACES)) { const p = PLACES[key]; drawBlip(ctx, X(p.x), Z(p.z), p.color, p.icon, 10.5); }
   for (const m of getMarkers()) {
     if (m.persistent && m.kind !== 'missionStart') continue;
     const x = X(m.x), z = Z(m.z);
     if (m.kind === 'missionStart' || m.kind === 'mission') { ctx.beginPath(); ctx.arc(x, z, 15 + Math.sin(game.time * 4) * 2, 0, 6.3); ctx.strokeStyle = hex(m.color); ctx.lineWidth = 2.5; ctx.stroke(); }
-    drawBlip(ctx, x, z, hex(m.color), m.icon, m.kind === 'enemy' ? 5 : 10);
+    drawBlip(ctx, x, z, hex(m.color), m.icon, m.kind === 'enemy' ? 5 : 12);
   }
   for (const v of game.vehicles) if (v.isPolice && v.ai && v.ai.mode !== 'traffic' && !v.wrecked) drawBlip(ctx, X(v.pos.x), Z(v.pos.z), Math.floor(game.time * 4 + v.id) % 2 ? '#ff3344' : '#4f7dff', '', 5);
   if (game.player) {

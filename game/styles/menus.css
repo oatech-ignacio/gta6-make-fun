@@ -27,11 +27,11 @@
 .pm-tabs b { color: #fff; font-weight: 400; border-bottom: 0.4vh solid var(--teal); }
 .pm-clock { margin-left: auto; font-family: var(--display); font-size: 2.6vh; letter-spacing: 0.1em; color: var(--gold); }
 .pm-mapwrap { position: relative; min-height: 0; border: 1px solid rgba(255,255,255,0.18); border-radius: 1vh; overflow: hidden; background: #0d2a44; }
-.pm-mapwrap canvas { width: 100%; height: 100%; display: block; }
-.pm-side { display: flex; flex-direction: column; gap: 1.4vh; min-height: 0; }
-.pm-card { padding: 1.4vh 1.2vw; }
+.pm-mapwrap canvas { width: 100%; height: 100%; display: block; object-fit: cover; }
+.pm-side { display: flex; flex-direction: column; gap: 1.1vh; min-height: 0; overflow: hidden; }
+.pm-card { padding: 1.1vh 1.1vw; }
 .pm-card h3 { font-family: var(--display); font-weight: 400; margin: 0 0 0.8vh; letter-spacing: 0.14em; font-size: 2.3vh; color: var(--teal); }
-.pm-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5vh 1vw; font-size: 2.1vh; }
+.pm-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3vh 1vw; font-size: 2vh; }
 .pm-stats div { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); }
 .pm-stats span { color: #cfc6e6; }
 .pm-stats b { font-family: var(--display); font-weight: 400; letter-spacing: 0.05em; color: #fff; }
@@ -42,10 +42,10 @@
 .pm-mission .mrow.done { color: #8fe7a4; } .pm-mission .mrow.locked { color: rgba(255,255,255,0.35); }
 .pm-mission .mrow.next { color: #fff; font-weight: 700; }
 .pm-mission .mrow small { margin-left: auto; color: #6dff8f; font-family: var(--display); }
-.pm-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4vh 1vw; font-size: 1.95vh; }
+.pm-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25vh 1vw; font-size: 1.85vh; }
 .pm-legend span { display: flex; align-items: center; gap: 0.6vw; }
 .pm-legend i { width: 1.9vh; height: 1.9vh; border-radius: 50%; display: inline-block; border: 2px solid #000; font-style: normal; font-family: var(--display); font-size: 1.3vh; line-height: 1.6vh; text-align: center; color: #000; }
-.pm-save { font-size: 2vh; display: flex; justify-content: space-between; align-items: center; }
+.pm-save { font-size: 1.9vh; display: flex; gap: 1.2vw; align-items: center; margin-left: auto; color: #d9cff2; white-space: nowrap; }
 .pm-save b { font-family: var(--display); font-weight: 400; color: var(--gold); letter-spacing: 0.08em; }
 .pm-foot { grid-column: 1 / 3; display: flex; gap: 1vw; align-items: center; pointer-events: auto; }
 .pm-foot button { font-size: 2.4vh; letter-spacing: 0.12em; color: #fff; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); border-radius: 0.6vh; padding: 0.8vh 1.4vw; }

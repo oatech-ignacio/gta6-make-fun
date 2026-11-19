@@ -103,10 +103,11 @@ export function updatePedestrian(ped, dt) {
     const bias = ((ped.id % 7) - 3) * 0.22;
     const tx = ped.pos.x + (dx / d - dz / d * bias) * 10, tz = ped.pos.z + (dz / d + dx / d * bias) * 10;
     moveToward(ped, tx, tz, 5.6 + (ped.id % 3) * 0.5, dt, 10);
-    if (ped.panic <= 0) { ped.state = 'walk'; ai.block = nearestBlock(ped.pos.x, ped.pos.z); ai.crossing = false; }
+    if (ped.panic <= 0) { ped.state = 'walk'; ai.block = null; }
     return;
   }
-  if (!ai.block) { ai.block = nearestBlock(ped.pos.x, ped.pos.z); ai.corner = 0; ai.direction = 1; ai.pace = 1.5; ai.pause = 0; }
+  // (re)join the sidewalk loop of the closest block: also covers ejected drivers and mission extras
+  if (!ai.block || ai.pace === undefined) { ai.block = nearestBlock(ped.pos.x, ped.pos.z); ai.corner = game.rng.int(0, 3); ai.direction = game.rng.sign(); ai.pace = ai.pace || game.rng.range(1.25, 1.9); ai.pause = 0; ai.crossing = false; }
   if (ai.pause > 0) { ai.pause -= dt; ped.vel.x = ped.vel.z = 0; ped.state = 'idle'; return; }
   const target = blockCorner(ai.block, ai.corner);
   ped.state = 'walk';

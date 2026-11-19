@@ -216,7 +216,7 @@ const STEP_HANDLERS = {
   },
   collect: {
     begin(m, step) {
-      const at = step.atTarget && m.lastDrop ? m.lastDrop : step.at;
+      const at = (step.atTarget && m.lastDrop) || step.at || { x: game.player.pos.x + 3, z: game.player.pos.z };
       const p = spawnPickup(step.item || 'briefcase', at.x, at.z, { onCollect: () => { m.state.got = true; } });
       m.pickups.push(p);
       setMarker(m, { x: at.x, z: at.z, color: 0x6dff8f, radius: 1.4, label: 'Pick up' });

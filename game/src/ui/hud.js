@@ -117,7 +117,7 @@ export function updateHud(dt) {
   if (prompt && el.prompt.innerHTML !== prompt) el.prompt.innerHTML = prompt;
   // crosshair
   const armed = game.currentWeapon !== 'fists';
-  el.crosshair.classList.toggle('hidden', !(armed && (cameraRig.aiming || player.fireAnim > 0 || player.vehicle)) || player.health <= 0);
+  el.crosshair.classList.toggle('hidden', !(armed && (cameraRig.aiming || player.fireAnim > 0)) || player.health <= 0);
   crosshairHit = Math.max(0, crosshairHit - dt);
   el.crosshair.classList.toggle('hit', crosshairHit > 0);
   if (titleTimer > 0) { titleTimer -= dt; if (titleTimer <= 0) el['title-card'].classList.add('hidden'); }

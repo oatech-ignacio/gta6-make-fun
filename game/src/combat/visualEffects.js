@@ -53,10 +53,10 @@ function emit(x, y, z, o) {
 const rnd = (a) => (Math.random() - 0.5) * 2 * a;
 
 export function spawnMuzzleFlash(x, y, z, scale = 1) {
-  emit(x, y, z, { glow: true, additive: true, r: 6, g: 4.2, b: 1.6, size: 1.5 * scale, life: 0.07, grow: 6 });
-  emit(x, y, z, { glow: true, additive: true, r: 3, g: 1.6, b: 0.5, size: 3.2 * scale, life: 0.06, alpha: 0.7 });
+  emit(x, y, z, { glow: true, additive: true, r: 6, g: 4.2, b: 1.6, size: 0.55 * scale, life: 0.07, grow: 4 });
+  emit(x, y, z, { glow: true, additive: true, r: 3, g: 1.6, b: 0.5, size: 1.3 * scale, life: 0.06, alpha: 0.6 });
   emit(x, y + 0.1, z, { r: 0.8, g: 0.8, b: 0.8, size: 0.4, life: 0.5, vy: 0.8, grow: 1.2, alpha: 0.3 });
-  flashLight.position.set(x, y + 0.2, z); flashLight.intensity = 60 * scale;
+  flashLight.position.set(x, y + 0.2, z); flashLight.intensity = 16 * scale;
 }
 
 export function spawnTracer(ax, ay, az, bx, by, bz) {

@@ -17,7 +17,7 @@ const wheelGeometry = (() => {
 const wheelMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0.2 });
 const glowMaterialCache = new Map();
 function glowMaterial(color) {
-  if (!glowMaterialCache.has(color)) glowMaterialCache.set(color, new THREE.SpriteMaterial({ map: getGlowTexture(), color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+  if (!glowMaterialCache.has(color)) glowMaterialCache.set(color, new THREE.SpriteMaterial({ map: getGlowTexture(), color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.5 }));
   return glowMaterialCache.get(color);
 }
 
@@ -128,8 +128,8 @@ export function createVehicleMesh(spec, paintHex) {
     w.position.set(isBike ? 0 : wp[0] * (spec.width * 0.5 - 0.14), 0.36 * big, isBike ? wp[1] : wp[1] * spec.length);
     w.castShadow = true; root.add(w); wheels.push(w);
   }
-  const headGlow = new THREE.Sprite(glowMaterial(0xfff0c0)); headGlow.scale.set(2.6, 1.3, 1); headGlow.position.set(0, spec.height * 0.48, spec.length * 0.5 + 0.2);
-  const brakeGlow = new THREE.Sprite(glowMaterial(0xff2010)); brakeGlow.scale.set(2.4, 0.9, 1); brakeGlow.position.set(0, spec.height * 0.52, -spec.length * 0.5 - 0.15);
+  const headGlow = new THREE.Sprite(glowMaterial(0xfff0c0)); headGlow.scale.set(2.0, 0.8, 1); headGlow.position.set(0, spec.height * 0.48, spec.length * 0.5 + 0.2);
+  const brakeGlow = new THREE.Sprite(glowMaterial(0xff2010)); brakeGlow.scale.set(1.9, 0.6, 1); brakeGlow.position.set(0, spec.height * 0.52, -spec.length * 0.5 - 0.15);
   tilt.add(headGlow, brakeGlow);
   root.userData = { tilt, wheels, headGlow, brakeGlow, lightBar: null };
   if (spec.key === 'police' || spec.key === 'swat') {
@@ -147,13 +147,15 @@ export function createVehicleMesh(spec, paintHex) {
 }
 
 /** Flash the red/blue bar; `on` false leaves it dark. */
+export function setVehicleGlowLevel(night) { for (const m of glowMaterialCache.values()) m.opacity = 0.25 + night * 0.6; }
+
 export function animateLightBar(mesh, time, on) {
   const bar = mesh.userData.lightBar;
   if (!bar) return;
   const phase = Math.floor(time * 7) % 2 === 0, strobe = Math.floor(time * 28) % 2 === 0;
-  const r = on && phase ? (strobe ? 1 : 0.55) : 0, b = on && !phase ? (strobe ? 1 : 0.55) : 0;
+  const r = on ? (phase ? (strobe ? 1 : 0.6) : 0.18) : 0, b = on ? (!phase ? (strobe ? 1 : 0.6) : 0.18) : 0;
   bar.red.material.color.setRGB(0.25 + r * 5, 0.02 + r * 0.3, 0.03 + r * 0.3);
   bar.blue.material.color.setRGB(0.03 + b * 0.5, 0.06 + b * 0.9, 0.3 + b * 6);
   bar.glowRed.visible = r > 0; bar.glowBlue.visible = b > 0;
-  const s = 5.5; bar.glowRed.scale.set(s * (0.7 + r * 0.5), s * (0.7 + r * 0.5), 1); bar.glowBlue.scale.set(s * (0.7 + b * 0.5), s * (0.7 + b * 0.5), 1);
+  const s = 6.5; bar.glowRed.scale.set(s * (0.35 + r * 0.75), s * (0.35 + r * 0.75), 1); bar.glowBlue.scale.set(s * (0.35 + b * 0.75), s * (0.35 + b * 0.75), 1);
 }

@@ -35,8 +35,8 @@ export const DISTRICTS = {
 };
 
 export function districtKeyForBlock(i, j) {
+  if (i >= 7 && j <= 5) return 'beach';
   if (j >= 5) return 'docks';
-  if (i >= 7) return 'beach';
   if (i <= 2) return 'suburbs';
   if (j === 0) return 'market';
   return 'downtown';

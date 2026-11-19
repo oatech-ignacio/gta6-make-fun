@@ -172,6 +172,7 @@ export function updateVehiclePhysics(v, dt) {
   v.vx = fx * fwd - fz * lat; v.vz = fz * fwd + fx * lat;
   v.speed = fwd; v.lateral = lat;
   v.pos.x += v.vx * dt; v.pos.z += v.vz * dt;
+  if (!Number.isFinite(v.pos.x + v.pos.z + v.heading)) { console.error('NaN vehicle', v.type, v.ai && v.ai.mode, JSON.stringify(v.controls), v.vx, v.vz, v.heading); }
   collideWithStatics(v, dt);
   v.pos.y = damp(v.pos.y, groundHeightAt(v.pos.x, v.pos.z), 14, dt);
   // 4. damage states
@@ -197,7 +198,7 @@ export function updateVehiclePhysics(v, dt) {
   const lightsWanted = !v.wrecked && (v.driver || v.ai) && (lighting.nightFactor > 0.1 || v.isPolice);
   ud.headGlow.visible = !!lightsWanted && lighting.nightFactor > 0.08;
   ud.brakeGlow.visible = !v.wrecked && !!(v.driver || v.ai) && (c.brake > 0.2 || (throttle < 0 && fwd > 1) || c.handbrake || lighting.nightFactor > 0.3);
-  if (ud.lightBar) animateLightBar(m, game.time + v.sirenPhase * 0.0, v.siren && !v.wrecked);
+  if (ud.lightBar) animateLightBar(m, game.time + v.sirenPhase, v.siren && !v.wrecked);
 }
 
 /** Pairwise vehicle collisions; called once per frame after every vehicle has moved. */

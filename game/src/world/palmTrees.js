@@ -10,7 +10,7 @@ function createPalmTrunkGeometry(height) {
     const t = p.getY(i) / height;
     p.setX(i, p.getX(i) + 1.1 * t * t);            // gentle lean
     const ring = (Math.floor(t * 18) % 2) ? 0.82 : 1;
-    colors.push(0.5 * ring, 0.4 * ring, 0.3 * ring);
+    colors.push(0.4 * ring, 0.35 * ring, 0.3 * ring);
   }
   g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   g.computeVertexNormals();
@@ -19,13 +19,13 @@ function createPalmTrunkGeometry(height) {
 
 function createPalmFrondGeometry(height) {
   const pos = [], col = [], nor = [];
-  const leaves = 11, segs = 6;
+  const leaves = 14, segs = 6;
   for (let l = 0; l < leaves; l++) {
-    const yaw = (l / leaves) * Math.PI * 2 + (l % 2) * 0.2, len = 4.6 + (l % 3) * 0.5, lift = 0.9 + (l % 4) * 0.28;
+    const yaw = (l / leaves) * Math.PI * 2 + (l % 2) * 0.2, len = 4.0 + (l % 3) * 0.5, lift = 0.7 + (l % 4) * 0.34;
     const cs = Math.cos(yaw), sn = Math.sin(yaw);
     const point = (t, side) => {
       const r = len * t, y = lift * 1.9 * t - 3.4 * t * t + (side === 0 ? 0.16 : 0);
-      const wdt = side * 0.62 * Math.sin(Math.PI * (0.12 + 0.88 * t)) ;
+      const wdt = side * 0.4 * Math.sin(Math.PI * (0.12 + 0.88 * t)) ;
       return [1.1 + cs * r - sn * wdt, height + y, sn * r + cs * wdt];
     };
     for (let s = 0; s < segs; s++) {

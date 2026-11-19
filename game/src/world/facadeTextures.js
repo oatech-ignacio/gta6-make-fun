@@ -17,10 +17,10 @@ function finishTexture(canvas, srgb = true) {
 
 function litColor(rng) {
   const r = rng();
-  if (r < 0.62) return `hsl(${38 + rng() * 12}, 95%, ${58 + rng() * 18}%)`;
-  if (r < 0.82) return `hsl(${185 + rng() * 20}, 80%, ${60 + rng() * 15}%)`;
-  if (r < 0.93) return `hsl(${320 + rng() * 20}, 90%, 66%)`;
-  return '#ffffff';
+  if (r < 0.8) return `hsl(${32 + rng() * 16}, ${70 + rng() * 25}%, ${52 + rng() * 22}%)`;
+  if (r < 0.9) return `hsl(${188 + rng() * 16}, 60%, ${62 + rng() * 15}%)`;
+  if (r < 0.95) return `hsl(${322 + rng() * 16}, 75%, 66%)`;
+  return '#fff4dd';
 }
 
 /** Draws one facade style. `painter(ctx, emi, x, y, cell, lit, rng)` paints a single window cell. */
@@ -33,7 +33,7 @@ function drawFacade(seed, wallColor, painter, wallDetail) {
   const cell = SIZE / CELLS;
   if (wallDetail) wallDetail(ctx, rng);
   for (let gy = 0; gy < CELLS; gy++) for (let gx = 0; gx < CELLS; gx++) {
-    painter(ctx, emi, gx * cell, gy * cell, cell, rng() < 0.42, rng);
+    painter(ctx, emi, gx * cell, gy * cell, cell, rng() < 0.36, rng);
   }
   // soft grime so large walls are not flat
   for (let i = 0; i < 500; i++) { ctx.fillStyle = `rgba(0,0,0,${rng() * 0.035})`; ctx.fillRect(rng() * SIZE, rng() * SIZE, 2 + rng() * 26, 1 + rng() * 5); }
@@ -94,7 +94,12 @@ function storefrontCell(ctx, emi, x, y, s, lit, rng) {
   g.addColorStop(0, `hsl(${rng() * 360}, 60%, 42%)`); g.addColorStop(1, '#1b2634');
   ctx.fillStyle = g; ctx.fillRect(x + 5, y + 8, s - 10, s - 16);
   ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.fillRect(x + 7, y + 10, s * 0.25, s - 22);
-  emi.fillStyle = litColor(rng); emi.globalAlpha = lit ? 0.9 : 0.45; emi.fillRect(x + 5, y + 8, s - 10, s - 16); emi.globalAlpha = 1;
+  ctx.fillStyle = '#0d1118'; for (let k = 1; k < 4; k++) ctx.fillRect(x + 5 + k * (s - 10) / 4 - 1, y + 8, 2.5, s - 16);
+  ctx.fillRect(x + 5, y + s * 0.3, s - 10, 2.5);
+  const glow = litColor(rng);
+  emi.fillStyle = glow; emi.globalAlpha = lit ? 0.42 : 0.2; emi.fillRect(x + 5, y + s * 0.3, s - 10, s * 0.7 - 16);
+  emi.globalAlpha = lit ? 0.95 : 0.6; emi.fillRect(x + 8, y + 11, s - 16, s * 0.3 - 8); emi.globalAlpha = 1;
+  emi.fillStyle = '#000'; for (let k = 1; k < 4; k++) emi.fillRect(x + 5 + k * (s - 10) / 4 - 1, y + s * 0.3, 2.5, s);
 }
 
 // Style table: world size of one window cell (bay width x floor height) and surface response.

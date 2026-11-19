@@ -125,7 +125,8 @@ export function buildCity(scene, rng) {
   scene.add(buildBatchMesh(ctx.grass, new THREE.MeshStandardMaterial({ map: createGrassTexture(), vertexColors: true, roughness: 1 })));
 
   const signs = buildNeonSigns(ctx.signSlots, rng); scene.add(signs);
-  const palmList = ctx.palms.filter((p) => !isPointInsideStatic(p.x, p.z, 0.6));
+  const nearPlace = (p) => Object.values(PLACES).some((pl) => (pl.x - p.x) ** 2 + (pl.z - p.z) ** 2 < 36);
+  const palmList = ctx.palms.filter((p) => !isPointInsideStatic(p.x, p.z, 0.6) && !nearPlace(p));
   scene.add(buildPalmTrees(palmList, rng));
   scene.add(buildBroadleafTrees(ctx.trees.filter((p) => !isPointInsideStatic(p.x, p.z, 1)), rng));
   for (const p of palmList) addStaticBox(p.x - 0.3, p.z - 0.3, p.x + 0.3, p.z + 0.3, 2.5, 'trunk');

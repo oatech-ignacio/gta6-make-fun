@@ -31,7 +31,7 @@ function setProgressState(money, respect, missionIndex) {
 
 function pursuitCruiser(x, z, heading, speed, type = 'police') {
   const v = spawnVehicle(type, x, z, heading);
-  v.ai = createPursuitBrain(); v.siren = true; v.sirenPhase = x;
+  v.ai = createPursuitBrain(); v.siren = true; v.sirenPhase = Math.round(x) % 2 ? 0 : 1 / 7;
   v.vx = Math.sin(heading) * speed; v.vz = Math.cos(heading) * speed;
   return v;
 }
@@ -52,8 +52,8 @@ function fleeingPed(x, z, fromX, fromZ) {
 
 /** Cover: golden-hour chase down palm-lined Causeway Drive in a stolen Marlin RS, three stars, cruisers on the bumper. */
 function stageChase(api) {
-  lighting.sunAzimuthBias = 0.16;
-  setTimeOfDay(18.55);
+  lighting.sunAzimuthBias = 0.02;
+  setTimeOfDay(18.45);
   setProgressState(18450, 310, 4);
   giveWeapon('pistol', 60); giveWeapon('smg', 128); selectWeapon('smg');
   const z = CAUSEWAY_Z, west = -Math.PI / 2;
@@ -64,11 +64,12 @@ function stageChase(api) {
   game.player.armor = 55; game.player.health = 82;
   startMission(4); jumpToMissionStep('loseWanted'); hideTitleCard();
   setWantedLevel(3);
-  pursuitCruiser(331, z - 5.4, west + 0.05, 41);
-  pursuitCruiser(338.5, z + 0.6, west - 0.07, 42);
-  pursuitCruiser(349, z - 3.2, west, 43);
-  pursuitCruiser(366, z + 4.6, west + 0.03, 44);
-  pursuitCruiser(383, z - 5.5, west, 44, 'swat');
+  pursuitCruiser(328, z - 5.6, west + 0.05, 41);
+  pursuitCruiser(333, z + 1.2, west - 0.07, 42);
+  pursuitCruiser(342, z - 2.6, west, 43);
+  pursuitCruiser(353, z + 4.8, west + 0.03, 44);
+  pursuitCruiser(366, z - 5.5, west, 44, 'swat');
+  pursuitCruiser(380, z - 0.5, west, 44);
   // oncoming and same-way traffic, plus cars further down the street
   trafficCar('taxi', 300, z + 5.5, Math.PI / 2);
   trafficCar('sedan', 262, z + 2.0, Math.PI / 2, 0x1d4b7a);
@@ -88,7 +89,7 @@ function stageChase(api) {
   showNotification('<b>POLICE SCANNER</b>All units: red Marlin RS westbound on Causeway Drive.', 'warn', 0);
   // look-back chase camera: low, ahead of the car, catching the cruisers and the bridge behind
   const p = car.pos;
-  cameraRig.override = { x: p.x - 9.6, y: 1.75, z: p.z + 4.9, tx: p.x + 4.5, ty: 1.25, tz: p.z - 0.9, fov: 52, yaw: west };
+  cameraRig.override = { x: p.x - 8.6, y: 1.95, z: p.z + 4.6, tx: p.x + 4.5, ty: 1.2, tz: p.z - 0.6, fov: 54, yaw: west };
   api.simulateWorld(1 / 60, 1 / 60);
 }
 
@@ -115,11 +116,11 @@ function stageStreet(api) {
   const jacked = spawnVehicle('muscle', 207, z + 2.6, west - 0.5, { color: 0xe8a01a }); jacked.playerOwned = true;
   for (const [px, pz] of [[205, z - 15], [196, z - 16], [188, z + 6.3], [209, z + 7], [181, z - 15.5], [176, z + 6.6], [219, z - 15.6], [169, z + 7.2], [200, z + 6.8]]) fleeingPed(px, pz, 200, z - 3);
   populateTrafficAround(214, z, 8, 60, 200); populatePedestriansAround(10, 25, 110);
-  cameraRig.yaw = west + 0.1; cameraRig.pitch = 0.13;
-  getMouse().right = true; game.flags.controlsLocked = false;
-  for (let i = 0; i < 12; i++) { api.simulateWorld(1 / 30, 1 / 30); cruiser.controls.throttle = 0.4; }
+  cameraRig.yaw = west + 0.16; cameraRig.pitch = 0.1; cameraRig.snap = true;
+  game.flags.controlsLocked = false; void getMouse;
+  for (let i = 0; i < 12; i++) { game.player.fireAnim = 5; api.simulateWorld(1 / 30, 1 / 30); cruiser.controls.throttle = 0.4; }
   deployOfficers(cruiser); void cruiser2;
-  for (let i = 0; i < 5; i++) api.simulateWorld(1 / 30, 1 / 30);
+  for (let i = 0; i < 5; i++) { game.player.fireAnim = 5; api.simulateWorld(1 / 30, 1 / 30); }
   setMissionName('Free Roam'); setObjective('Brine Kings on Neon Row. <b>Take them out</b> before <em>Bay Patrol</em> boxes you in.');
   // squeeze the trigger on the final frame so the flash, tracer and light are in the picture
   const target = foes[0], d = new THREE.Vector3(target.pos.x - game.player.pos.x, -0.02, target.pos.z - game.player.pos.z).normalize();
@@ -148,12 +149,15 @@ function stageMission(api) {
   spawnVehicle('sports', 446, 150, Math.PI, { color: 0xff2d55, parked: true });
   populateTrafficAround(b.x, b.z, 8, 50, 200); populatePedestriansAround(16, 6, 90);
   for (let i = 0; i < 20; i++) api.simulateWorld(1 / 30, 1 / 30);
-  teleportPlayer(b.x + 0.2, b.z + 0.1, Math.PI * 0.75);
-  api.simulateWorld(1 / 60, 1 / 60);      // walking into the marker starts "Fresh Off the Bus"
-  for (let i = 0; i < 4; i++) api.simulateWorld(1 / 60, 1 / 60);
+  // stage the conversation in profile: Benny on the left, Dez and Luz on the right, the bay behind them
+  const benny = game.characters.find((c) => c.name === 'Tio Benny Salazar');
+  if (benny) { benny.pos.set(b.x + 0.7, 0, b.z - 2.1); benny.heading = -0.5; }
+  luz.pos.set(b.x + 1.7, 0, b.z + 1.7); luz.heading = Math.PI + 0.35;
+  teleportPlayer(b.x + 0.5, b.z + 0.7, Math.PI + 0.55);
+  for (let i = 0; i < 5; i++) api.simulateWorld(1 / 60, 1 / 60);      // standing in the marker starts "Fresh Off the Bus"
   setObjective('Talk to <b>Tio Benny</b> outside the bait shop.');
   setRadioBanner(null);
-  cameraRig.override = { x: b.x - 6.2, y: 2.25, z: b.z + 5.6, tx: b.x + 9, ty: 2.2, tz: b.z - 7.5, fov: 50, yaw: Math.atan2(15.2, -13.1) };
+  cameraRig.override = { x: b.x - 4.9, y: 1.7, z: b.z - 0.5, tx: b.x + 1.2, ty: 0.95, tz: b.z - 0.1, fov: 44, yaw: Math.PI / 2 };
   api.simulateWorld(1 / 60, 1 / 60);
 }
 
@@ -162,9 +166,9 @@ function stageMap(api) {
   setTimeOfDay(21.5);
   setProgressState(18450, 310, 4);
   giveWeapon('pistol', 60); giveWeapon('smg', 128);
-  teleportPlayer(300, -120, 2.2);
+  teleportPlayer(-140, 150, 0.6);
   refreshMissionStartMarker();
-  pursuitCruiser(250, -144, Math.PI / 2, 10); pursuitCruiser(336, -60, Math.PI, 10);
+  pursuitCruiser(-100, 240, Math.PI / 2, 10); pursuitCruiser(-48, 60, Math.PI, 10);
   setWantedLevel(2);
   for (let i = 0; i < 6; i++) api.simulateWorld(1 / 30, 1 / 30);
   try { localStorage.clear(); } catch (err) { /* ignore */ }

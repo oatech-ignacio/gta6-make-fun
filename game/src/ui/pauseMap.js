@@ -47,18 +47,17 @@ export function renderPauseMap() {
   const root = document.getElementById('pause-map'), st = getSettings();
   root.innerHTML = `
     <div class="pm-head"><h1>PALMERA HEAT</h1><div class="pm-tabs"><b>CITY MAP</b><span>STATS</span><span>STORY</span><span>SETTINGS</span></div><div class="pm-clock">${formatClock(game.timeOfDay)} &middot; PALMERA BAY</div></div>
-    <div class="pm-mapwrap"><canvas id="pm-canvas" width="1180" height="720"></canvas></div>
+    <div class="pm-mapwrap"><canvas id="pm-canvas" width="1140" height="820"></canvas></div>
     <div class="pm-side">
       <div class="panel pm-card"><h3>DEZ MARLOWE &middot; ${getRespectRank().name.toUpperCase()}</h3><div class="pm-stats">${statsHtml()}</div></div>
       <div class="panel pm-card"><h3>STORY</h3><div class="pm-mission">${missionsHtml()}</div></div>
       <div class="panel pm-card"><h3>LEGEND</h3><div class="pm-legend">${legendHtml()}</div></div>
-      <div class="panel pm-card"><div class="pm-save">${saveHtml()}</div></div>
     </div>
     <div class="pm-foot">
       <button id="pm-resume">RESUME</button><button id="pm-save">SAVE GAME</button><button id="pm-quit">MAIN MENU</button>
       <label>VOLUME <input id="pm-volume" type="range" min="0" max="1" step="0.05" value="${st.masterVolume}"></label>
       <label>MOUSE <input id="pm-sens" type="range" min="0.3" max="2.5" step="0.05" value="${st.mouseSensitivity}"></label>
-      <span class="keys">ESC / M RESUME &middot; WASD MOVE &middot; F ENTER CAR &middot; RMB AIM &middot; LMB FIRE</span>
+      <div class="pm-save">${saveHtml()}</div>
     </div>`;
   mapCanvas = document.getElementById('pm-canvas');
   drawCityMap(mapCanvas);

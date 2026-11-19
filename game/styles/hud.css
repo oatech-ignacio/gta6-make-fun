@@ -64,7 +64,7 @@
 #objective b { color: var(--gold); font-weight: 700; }
 #objective em { color: #58b8ff; font-style: normal; }
 #objective u { color: #ff6b6b; text-decoration: none; }
-#prompt { position: absolute; left: 50%; bottom: 15vh; transform: translateX(-50%); background: var(--panel); border-radius: 0.8vh; padding: 0.8vh 1.4vw; font-size: 2.5vh; font-weight: 600; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap; }
+#prompt { position: absolute; left: 50%; bottom: 22vh; transform: translateX(-50%); background: var(--panel); border-radius: 0.8vh; padding: 0.8vh 1.4vw; font-size: 2.5vh; font-weight: 600; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap; }
 #prompt kbd { font-family: var(--display); background: #fff; color: #111; text-shadow: none; border-radius: 0.5vh; padding: 0 0.6vw; margin-right: 0.6vw; }
 #crosshair { position: absolute; left: 50%; top: 50%; width: 3vh; height: 3vh; margin: -1.5vh 0 0 -1.5vh; border: 0.25vh solid rgba(255,255,255,0.9); border-radius: 50%; box-shadow: 0 0 4px #000, inset 0 0 4px #000; }
 #crosshair::after { content: ""; position: absolute; left: 50%; top: 50%; width: 0.5vh; height: 0.5vh; margin: -0.25vh; background: var(--pink); border-radius: 50%; }
@@ -74,8 +74,8 @@
 .note.money { border-color: #6dff8f; } .note.warn { border-color: #ff5d5d; } .note.gold { border-color: var(--gold); }
 .note b { font-family: var(--display); letter-spacing: 0.08em; font-weight: 400; display: block; color: var(--gold); }
 @keyframes notein { from { transform: translateX(-30px); opacity: 0; } }
-#progress-wrap { position: absolute; left: 50%; bottom: 20vh; transform: translateX(-50%); width: 30vw; text-align: center; font-family: var(--display); letter-spacing: 0.1em; font-size: 2.2vh; }
-#progress-wrap .bar { height: 1.8vh; margin-top: 0.5vh; }
+#progress-wrap { position: absolute; left: 50%; bottom: 14.5vh; transform: translateX(-50%); width: 20vw; text-align: center; font-family: var(--display); letter-spacing: 0.1em; font-size: 2.2vh; }
+#progress-wrap .bar { height: 1.2vh; margin-top: 0.3vh; }
 
 /* ---------- title card / dialogue / banners ---------- */
 #title-card { position: fixed; right: 4vw; bottom: 30vh; z-index: 12; text-align: right; pointer-events: none; text-shadow: 0 3px 0 #000, 0 0 22px rgba(0,0,0,0.9); animation: cardin 0.5s ease-out; }
