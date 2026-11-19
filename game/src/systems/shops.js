@@ -1,0 +1,106 @@
+// Interactive locations: Iron Pelican Arms (weapons), Odette's respray and chop shop, the safehouse bed.
+import { game } from '../core/gameState.js';
+import { wasKeyPressed } from '../core/input.js';
+import { PLACES } from '../world/cityLayout.js';
+import { WEAPONS, giveWeapon, selectWeapon } from '../combat/weaponCatalog.js';
+import { spendMoney, addMoney, addRespect, getRespectRank } from './economy.js';
+import { clearWantedLevel } from './wantedLevel.js';
+import { saveGame } from './saveGame.js';
+import { createMarker } from '../missions/missionMarkers.js';
+import { setPrompt } from '../ui/hud.js';
+import { showNotification } from '../ui/notifications.js';
+import { formatMoney } from '../core/mathUtils.js';
+import { playSound } from '../audio/soundEffects.js';
+import { removeVehicle, repaintVehicle } from '../vehicles/vehiclePhysics.js';
+import { leaveVehicle } from '../vehicles/vehicleEntry.js';
+import { setTimeOfDay } from '../world/dayNightCycle.js';
+
+let menuOpen = false;
+const menuEl = () => document.getElementById('shop-menu');
+
+export const GUN_SHOP_STOCK = [
+  { key: '1', label: 'Coral 9 pistol', weapon: 'pistol' },
+  { key: '2', label: 'Mako SMG', weapon: 'smg' },
+  { key: '3', label: 'Tidebreaker 12 shotgun', weapon: 'shotgun' },
+  { key: '4', label: 'Body armour', armor: true, price: 600, respect: 0 },
+  { key: '5', label: 'First-aid kit', health: true, price: 150, respect: 0 },
+];
+
+export function initShops() {
+  createMarker({ x: PLACES.gunShop.x, z: PLACES.gunShop.z, color: 0xff5d5d, icon: 'G', label: PLACES.gunShop.name, radius: 1.6, persistent: true });
+  createMarker({ x: PLACES.respray.x, z: PLACES.respray.z, color: 0x4fe3d6, icon: 'S', label: PLACES.respray.name, radius: 3, persistent: true });
+  createMarker({ x: PLACES.chopShop.x, z: PLACES.chopShop.z, color: 0xff9f43, icon: 'O', label: PLACES.chopShop.name, radius: 3, persistent: true });
+  createMarker({ x: PLACES.safehouse.x, z: PLACES.safehouse.z, color: 0x6dff8f, icon: 'H', label: PLACES.safehouse.name, radius: 1.5, persistent: true });
+}
+
+function near(place, r) { const p = game.player.pos; return (p.x - place.x) ** 2 + (p.z - place.z) ** 2 < r * r; }
+
+function renderGunMenu() {
+  const rank = getRespectRank().index;
+  const rows = GUN_SHOP_STOCK.map((item) => {
+    const w = item.weapon ? WEAPONS[item.weapon] : null;
+    const owned = w && game.weapons[item.weapon];
+    const price = w ? (owned ? w.ammoPrice : w.price) : item.price;
+    const need = w ? w.respect : item.respect;
+    const locked = rank < need;
+    const label = w ? (owned ? `${w.name} ammo x${w.ammoPack}` : item.label) : item.label;
+    return `<div class="shop-row ${locked ? 'locked' : ''}"><kbd>${item.key}</kbd><span>${label}</span><b>${locked ? 'NEEDS MORE RESPECT' : formatMoney(price)}</b></div>`;
+  }).join('');
+  menuEl().innerHTML = `<h2>IRON PELICAN ARMS</h2><p>"If it floats, flies or fires, we stock it." &middot; Cash: ${formatMoney(game.money)}</p>${rows}<div class="shop-row"><kbd>E</kbd><span>Leave</span><b></b></div>`;
+}
+
+function buyFromGunShop(item) {
+  const rank = getRespectRank().index, player = game.player;
+  if (item.weapon) {
+    const w = WEAPONS[item.weapon], owned = game.weapons[item.weapon];
+    if (rank < w.respect) return playSound('empty', player.pos);
+    if (!spendMoney(owned ? w.ammoPrice : w.price, 'weapons')) return playSound('empty', player.pos);
+    giveWeapon(item.weapon, owned ? w.ammoPack : w.clip * 3); selectWeapon(item.weapon);
+  } else if (item.armor) { if (player.armor >= 100 || !spendMoney(item.price, 'armour')) return playSound('empty', player.pos); player.armor = 100; }
+  else if (item.health) { if (player.health >= player.maxHealth || !spendMoney(item.price, 'medkit')) return playSound('empty', player.pos); player.health = player.maxHealth; }
+  playSound('cash', player.pos);
+  renderGunMenu();
+}
+
+export function isShopMenuOpen() { return menuOpen; }
+export function closeShopMenu() { menuOpen = false; menuEl().classList.add('hidden'); game.flags.controlsLocked = false; }
+
+export function updateShops(dt) {
+  const player = game.player, v = player.vehicle;
+  if (menuOpen) {
+    for (const item of GUN_SHOP_STOCK) if (wasKeyPressed('Digit' + item.key)) buyFromGunShop(item);
+    if (wasKeyPressed('KeyE') || wasKeyPressed('Escape') || !near(PLACES.gunShop, 4)) closeShopMenu();
+    return;
+  }
+  let prompt = null;
+  if (!v && near(PLACES.gunShop, 2.4)) {
+    prompt = '<kbd>E</kbd>Browse Iron Pelican Arms';
+    if (wasKeyPressed('KeyE')) { menuOpen = true; game.flags.controlsLocked = true; renderGunMenu(); menuEl().classList.remove('hidden'); }
+  } else if (v && near(PLACES.respray, 4.5) && Math.abs(v.speed) < 6) {
+    const cost = 250 + game.wanted.stars * 150;
+    prompt = `<kbd>E</kbd>Respray and repair &middot; ${formatMoney(cost)}${game.wanted.stars ? ' &middot; shakes the cops' : ''}`;
+    if (wasKeyPressed('KeyE')) {
+      if (game.wanted.stars > 0 && game.wanted.seen) showNotification('<b>ODETTE</b>Not with half the precinct watching, sugar. Lose them first.', 'warn', 4);
+      else if (spendMoney(cost, 'respray')) {
+        v.health = 100; v.burning = 0;
+        repaintVehicle(v, game.rng.pick([0xff2d55, 0x12d6c9, 0xffc21a, 0x7a2bff, 0xf5f5f5, 0x1b1b22, 0xff6a00, 0x2f7d4f]));
+        clearWantedLevel('respray'); playSound('spray', player.pos);
+        showNotification('<b>ODETTE\'S RESPRAY</b>Fresh paint, clean plates. Drive slow for a block.', 'gold', 4);
+      } else playSound('empty', player.pos);
+    }
+  } else if (v && near(PLACES.chopShop, 4.5) && Math.abs(v.speed) < 6 && !v.missionTag && !game.activeMission) {
+    const value = v.isPolice ? 0 : Math.round(v.spec.value * (0.35 + 0.65 * v.health / 100) / 10) * 10;
+    prompt = value ? `<kbd>E</kbd>Sell this ${v.spec.name} to Odette &middot; ${formatMoney(value)}` : 'Odette does not touch police property';
+    if (value && wasKeyPressed('KeyE')) {
+      leaveVehicle(player); removeVehicle(v); addMoney(value, 'chop shop'); addRespect(4); playSound('cash', player.pos);
+      showNotification(`<b>ODETTE'S AUTO</b>${v.spec.name} stripped for parts: ${formatMoney(value)}.`, 'money', 4);
+    }
+  } else if (!v && near(PLACES.safehouse, 2.2)) {
+    prompt = game.wanted.stars ? 'Lose the cops before you lie low' : game.activeMission ? 'Finish the job before you rest' : '<kbd>E</kbd>Rest and save at the Sol y Sombra';
+    if (!game.wanted.stars && !game.activeMission && wasKeyPressed('KeyE')) {
+      player.health = player.maxHealth; setTimeOfDay((game.timeOfDay + 7) % 24); saveGame();
+      showNotification('<b>GAME SAVED</b>Slept it off at the Sol y Sombra Motel.', 'gold', 4); playSound('pickup', player.pos);
+    }
+  }
+  setPrompt('shop', prompt);
+}

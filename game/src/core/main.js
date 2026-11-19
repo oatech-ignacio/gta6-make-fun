@@ -1,0 +1,184 @@
+// PALMERA HEAT bootstrap: builds the city, wires every system together, runs the frame update,
+// and switches between the title screen, gameplay, the pause map and screenshot mode.
+import { game, resetProgress } from './gameState.js';
+import { createSeededRandom } from './rng.js';
+import { initInput, wasKeyPressed, endInputFrame, setPointerLockEnabled, requestPointerLock, releasePointerLock } from './input.js';
+import { startGameLoop, stepSimulation, renderOnce } from './gameLoop.js';
+import { createRenderer, renderFrame, getPostProcessing } from '../render/renderer.js';
+import { cameraRig, updateFollowCamera, snapCameraBehind } from '../render/followCamera.js';
+import { buildCity, updateCityAnimations } from '../world/cityBuilder.js';
+import { initDayNight, updateDayNight, lighting, setTimeOfDay } from '../world/dayNightCycle.js';
+import { PLACES } from '../world/cityLayout.js';
+import { buildTrafficLights, updateTrafficLights } from '../vehicles/trafficLights.js';
+import { updateVehiclePhysics, resolveVehicleCollisions } from '../vehicles/vehiclePhysics.js';
+import { initTraffic, updateTraffic, populateTrafficAround } from '../vehicles/trafficAI.js';
+import { createPlayer, updatePlayer, teleportPlayer } from '../characters/playerController.js';
+import { updateCharacterPhysics } from '../characters/characterEntity.js';
+import { initPedestrians, updatePedestrians, populatePedestriansAround } from '../characters/pedestrianAI.js';
+import { initVisualEffects, updateVisualEffects } from '../combat/visualEffects.js';
+import { initDamageSystem } from '../combat/damageSystem.js';
+import { selectWeapon } from '../combat/weaponCatalog.js';
+import { initPoliceDispatch, updatePoliceDispatch } from '../police/policeDispatch.js';
+import { updateWantedLevel } from '../systems/wantedLevel.js';
+import { initWorldPickups, updatePickups } from '../systems/pickups.js';
+import { initShops, updateShops, isShopMenuOpen } from '../systems/shops.js';
+import { initPlayerRespawn, updatePlayerRespawn } from '../systems/playerRespawn.js';
+import { initAutosave, readSave, applySave } from '../systems/saveGame.js';
+import { loadSettings, getSettings } from '../systems/settings.js';
+import { initMissions, updateMissions, refreshMissionStartMarker } from '../missions/missionRunner.js';
+import { updateMarkers } from '../missions/missionMarkers.js';
+import { initSideActivities, updateSideActivities } from '../missions/sideActivities.js';
+import { initHud, updateHud, setHudVisible, setObjective } from '../ui/hud.js';
+import { buildBaseMap } from '../ui/minimap.js';
+import { initPauseMap, openPauseMap, closePauseMap, isPauseMapOpen, updatePauseMap } from '../ui/pauseMap.js';
+import { showStartScreen, hideStartScreen } from '../ui/startScreen.js';
+import { updateDialogue } from '../ui/dialogueBox.js';
+import { showNotification } from '../ui/notifications.js';
+import { initAudio, resumeAudio, suspendAudio } from '../audio/audioEngine.js';
+import { updateContinuousSounds } from '../audio/soundEffects.js';
+import { updateRadio } from '../audio/radioStations.js';
+import { runScreenshotScene } from '../shots/screenshotDirector.js';
+
+const params = new URLSearchParams(location.search);
+const shotName = params.get('shot');
+let menuAngle = 0.6;
+
+/** One simulation step of the whole world. `dt` is scaled game time, `realDt` is wall-clock time. */
+export function simulateWorld(dt, realDt = dt) {
+  game.dt = dt; game.time += dt; game.stats.playTime += dt; game.frame++;
+  updatePlayer(dt);
+  updateTraffic(dt);
+  updatePoliceDispatch(dt);
+  for (const v of game.vehicles) updateVehiclePhysics(v, dt);
+  resolveVehicleCollisions();
+  updatePedestrians(dt);
+  for (const c of game.characters.slice()) updateCharacterPhysics(c, dt);
+  updateWantedLevel(dt);
+  updateMissions(dt, realDt);
+  updateSideActivities(dt);
+  updateShops(dt);
+  updatePickups(dt);
+  updateMarkers(dt);
+  updateDialogue(realDt);
+  updatePlayerRespawn(realDt);
+  updateTrafficLights(game.time);
+  updateCityAnimations(game.city, dt);
+  updateVisualEffects(dt);
+  updateFollowCamera(realDt);
+  const focus = game.player.vehicle ? game.player.vehicle.pos : game.player.pos;
+  updateDayNight(dt, cameraRig.override ? { x: cameraRig.override.tx, z: cameraRig.override.tz } : focus);
+  updateRadio(dt);
+  updateContinuousSounds(dt);
+  updateHud(realDt);
+}
+
+function setPaused(paused) {
+  game.paused = paused;
+  if (paused) { openPauseMap(); releasePointerLock(); } else { closePauseMap(); requestPointerLock(); }
+  suspendAudio(paused);
+}
+
+function updateMenuBackdrop(dt) {
+  // slow helicopter-style orbit over Coral Strand while the city lives underneath
+  menuAngle += dt * 0.035;
+  const cx = 330, cz = 30, r = 250;
+  cameraRig.override = { x: cx + Math.cos(menuAngle) * r, y: 58, z: cz + Math.sin(menuAngle) * r, tx: cx - 60, ty: 26, tz: cz - 20, fov: 50 };
+  game.flags.controlsLocked = true;
+  simulateWorld(dt, dt);
+}
+
+function frameUpdate(realDt) {
+  if (game.mode === 'menu') updateMenuBackdrop(realDt);
+  else if (game.mode === 'play') {
+    const toggle = wasKeyPressed('KeyM') || wasKeyPressed('KeyP') || (wasKeyPressed('Escape') && !isShopMenuOpen());
+    if (toggle) setPaused(!game.paused);
+    if (game.paused) updatePauseMap();
+    else simulateWorld(realDt * game.timeScale, realDt);
+  }
+  endInputFrame();
+}
+
+function frameRender() { renderFrame(lighting.exposure); }
+
+function applyGraphicsSettings() {
+  const st = getSettings();
+  getPostProcessing().enabled = st.bloom;
+  game.renderer.shadowMap.enabled = st.shadows;
+}
+
+function populateWorldAroundPlayer() {
+  const p = game.player.pos;
+  populateTrafficAround(p.x, p.z, 16, 30, 200);
+  populatePedestriansAround(18, 10, 130);
+}
+
+function beginPlay(saved) {
+  hideStartScreen();
+  cameraRig.override = null;
+  game.flags.controlsLocked = false;
+  if (saved) {
+    const pos = applySave(saved) || PLACES.safehouse;
+    teleportPlayer(pos.x, pos.z, pos.heading || 0);
+    game.player.health = pos.health || 100; game.player.armor = pos.armor || 0;
+    selectWeapon(game.currentWeapon);
+    showNotification('<b>WELCOME BACK</b>Game loaded. Follow the letter blip to your next job.', 'gold', 6);
+  } else {
+    resetProgress();
+    teleportPlayer(PLACES.safehouse.x + 4, PLACES.safehouse.z + 12, 0);
+    showNotification("<b>PALMERA BAY</b>Dez and Luz just hit town with $350. Tio Benny has work: follow the gold <b style='display:inline'>T</b> blip down Corsair Boulevard.", 'gold', 12);
+    showNotification('<b>BASICS</b>WASD move &middot; F steals cars &middot; M opens the city map &middot; right mouse aims.', '', 12);
+  }
+  setTimeOfDay(game.timeOfDay);
+  initWorldPickups(game.stats.flamingos);
+  refreshMissionStartMarker();
+  populateWorldAroundPlayer();
+  setHudVisible(true);
+  setObjective('');
+  game.mode = 'play'; game.paused = false;
+  setPointerLockEnabled(true); requestPointerLock(); resumeAudio();
+}
+
+function enterMenu() {
+  game.mode = 'menu';
+  setHudVisible(false);
+  setPointerLockEnabled(false);
+  showStartScreen({
+    onNewGame: () => beginPlay(null),
+    onContinue: () => { const s = readSave(); if (s) beginPlay(s); },
+    onGraphicsChanged: applyGraphicsSettings,
+  });
+}
+
+function boot() {
+  loadSettings();
+  game.seed = Number(params.get('seed') || 1);
+  game.rng = createSeededRandom(game.seed);
+  const canvas = document.getElementById('view');
+  createRenderer(canvas, { preserveDrawingBuffer: !!shotName, pixelRatio: shotName ? 1 : undefined });
+  game.city = buildCity(game.scene, game.rng);
+  game.scene.add(buildTrafficLights(game.city.network));
+  if (params.get('hour')) game.timeOfDay = Number(params.get('hour'));
+  initDayNight(game.scene, { sky: game.city.sky, facadeMaterials: game.city.facadeMaterials, signs: game.city.signs, beacons: game.city.beacons });
+  initVisualEffects(game.scene);
+  initInput(canvas); initAudio(); initHud(); buildBaseMap();
+  initTraffic(); initPedestrians(); initDamageSystem(); initPoliceDispatch(); initPlayerRespawn(); initMissions(); initAutosave();
+  initPauseMap({ onResume: () => setPaused(false), onQuit: () => location.reload() });
+  resetProgress();
+  createPlayer(PLACES.safehouse.x + 4, PLACES.safehouse.z + 12, 0);
+  initShops(); initSideActivities(); initWorldPickups(0);
+  applyGraphicsSettings();
+  // handles for tests and tooling (fast-forwarding the simulation from page.evaluate)
+  window.__game = game;
+  window.__debug = { simulateWorld, stepSimulation, renderOnce, beginPlay, setPaused, setTimeOfDay };
+  if (shotName) {
+    game.mode = 'shot';
+    runScreenshotScene(shotName, { simulateWorld, render: frameRender, params }).then(() => { window.__shotReady = true; });
+    return;
+  }
+  populateWorldAroundPlayer();
+  enterMenu();
+  startGameLoop(frameUpdate, frameRender);
+  snapCameraBehind(0);
+}
+
+boot();

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PALMERA HEAT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./styles/base.css">
+<link rel="stylesheet" href="./styles/hud.css">
+<link rel="stylesheet" href="./styles/menus.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+</head>
+<body>
+<canvas id="view"></canvas>
+
+<div id="hud" class="hidden">
+  <div id="hud-topleft">
+    <div id="mission-name"></div>
+    <div id="mission-timer" class="hidden"></div>
+  </div>
+  <div id="radio-banner" class="hidden"><span class="radio-icon">&#9835;</span><span id="radio-name"></span><span id="radio-track"></span></div>
+  <div id="hud-topright">
+    <div id="weapon-panel">
+      <div id="weapon-icon"></div>
+      <div id="weapon-info"><div id="weapon-name">FISTS</div><div id="weapon-ammo"></div></div>
+    </div>
+    <div id="clock">17:30</div>
+    <div id="money">$0</div>
+    <div id="wanted-stars"></div>
+    <div id="respect-line"><span id="respect-rank">STREET RAT</span><div id="respect-bar"><i></i></div></div>
+  </div>
+  <div id="hud-bottomleft">
+    <div id="minimap-frame"><canvas id="minimap" width="220" height="220"></canvas><div id="minimap-north">N</div></div>
+    <div id="vitals">
+      <div class="bar health"><i id="health-fill"></i></div>
+      <div class="bar armor"><i id="armor-fill"></i></div>
+    </div>
+    <div id="district-name"></div>
+  </div>
+  <div id="hud-bottomright">
+    <div id="vehicle-panel" class="hidden">
+      <div id="vehicle-name"></div>
+      <div id="speedo"><span id="speed-value">0</span><small>MPH</small></div>
+      <div class="bar damage"><i id="vehicle-health-fill"></i></div>
+    </div>
+  </div>
+  <div id="objective"></div>
+  <div id="prompt" class="hidden"></div>
+  <div id="crosshair" class="hidden"></div>
+  <div id="notifications"></div>
+  <div id="progress-wrap" class="hidden"><div id="progress-label"></div><div class="bar progress"><i id="progress-fill"></i></div></div>
+</div>
+
+<div id="title-card" class="hidden"><div id="title-card-kicker"></div><div id="title-card-name"></div><div id="title-card-sub"></div></div>
+<div id="dialogue" class="hidden">
+  <canvas id="dialogue-portrait" width="112" height="112"></canvas>
+  <div id="dialogue-body"><div id="dialogue-who"></div><div id="dialogue-text"></div><div id="dialogue-hint">ENTER &#9656;</div></div>
+</div>
+<div id="big-banner" class="hidden"><div id="big-banner-text"></div><div id="big-banner-sub"></div></div>
+<div id="damage-vignette"></div>
+<div id="fade"></div>
+
+<div id="shop-menu" class="panel hidden"></div>
+<div id="pause-map" class="hidden"></div>
+<div id="start-screen" class="hidden"></div>
+
+<script type="module" src="./src/core/main.js"></script>
+</body>
+</html>
