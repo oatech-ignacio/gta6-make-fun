@@ -142,7 +142,7 @@ export function drawMinimap(canvas) {
 /** Full city map for the pause screen: north-up, labelled districts and streets, legend icons, live blips. */
 export function drawCityMap(canvas) {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height, base = getBaseMap();
-  const view = { minX: -520, maxX: 895, minZ: -425, maxZ: 425 };
+  const view = { minX: -612, maxX: 900, minZ: -430, maxZ: 425 };
   const s = Math.min(W / (view.maxX - view.minX), H / (view.maxZ - view.minZ));
   const ox = (W - (view.maxX - view.minX) * s) / 2 - view.minX * s, oz = (H - (view.maxZ - view.minZ) * s) / 2 - view.minZ * s;
   const X = (x) => ox + x * s, Z = (z) => oz + z * s;
@@ -154,7 +154,7 @@ export function drawCityMap(canvas) {
   ctx.textAlign = 'right';
   STREET_NAMES.forEach((n, j) => ctx.fillText(n.toUpperCase(), X(-448), Z(GRID_Z[j])));
   // district labels
-  const labels = [['suburbs', -288, 20], ['downtown', 96, 96], ['market', 96, -312], ['beach', 384, 290], ['docks', -90, 372], ['island', 790, -262], ['causeway', 590, -120]];
+  const labels = [['suburbs', -288, 20], ['downtown', 96, 96], ['market', 96, -312], ['beach', 384, 290], ['docks', -90, 372], ['island', 762, -262], ['causeway', 590, -120]];
   ctx.textAlign = 'center';
   for (const [key, x, z] of labels) {
     const d = DISTRICTS[key], big = key !== 'causeway';
