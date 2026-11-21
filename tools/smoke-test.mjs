@@ -115,10 +115,15 @@ if (!recruited || crew.stars !== 2 || crew.carHealth < 100 || !crew.jammed || cr
 await page.evaluate(() => { const g = window.__game, v = g.player.vehicle; g.flags.jamUntil = 0; g.wanted.seen = false; v.pos.set(-100, 0, 347); v.vx = v.vz = 0; });
 await ff(0.5); await page.keyboard.press('KeyE'); await ff(0.2);
 for (const key of ['Digit2', 'Digit7', 'Digit8', 'Digit9', 'Digit0']) { await page.keyboard.press(key); await ff(0.1); }
-const garage = await page.evaluate(() => { const g = window.__game, v = g.player.vehicle; return { open: !document.getElementById('garage-panel').classList.contains('hidden'), rows: document.querySelectorAll('#garage-panel .shop-row').length, garage: g.garage, topSpeed: +v.spec.maxSpeed.toFixed(1), stock: v.baseSpec.maxSpeed, paint: v.color.toString(16), stars: g.wanted.stars }; });
+const garage = await page.evaluate(async () => { const g = window.__game, v = g.player.vehicle, bay = await import('./src/render/garageBay.js'); return { open: !document.getElementById('garage-panel').classList.contains('hidden'), bay: bay.isGarageBayShown(), hudHidden: document.getElementById('hud').classList.contains('hidden'), rows: document.querySelectorAll('#garage-panel .g-row').length, swatches: document.querySelectorAll('#garage-panel .g-sw').length, garage: g.garage, topSpeed: +v.spec.maxSpeed.toFixed(1), stock: v.baseSpec.maxSpeed, paint: v.color.toString(16), stars: g.wanted.stars }; });
 log('garage', garage); await page.screenshot({ path: join(shots, 'smoke-garage.jpg'), type: 'jpeg', quality: 80 });
+await page.keyboard.press('KeyQ'); await ff(0.1);
+const showroom = await page.evaluate(() => ({ tab: document.querySelector('#garage-panel .g-tabs .on')?.textContent, cars: document.querySelectorAll('#garage-panel .g-cars .g-row').length, owned: document.querySelectorAll('#garage-panel .g-cars .g-row.owned').length }));
+log('garage showroom', showroom);
 await page.keyboard.press('KeyE'); await ff(0.2);
-if (!garage.open || garage.garage.engine !== 1 || garage.garage.armor !== 1 || garage.garage.tyres !== 1 || garage.garage.plateSwaps !== 1 || garage.stars !== 0 || !(garage.topSpeed > garage.stock)) errors.push('garage failed: ' + JSON.stringify(garage));
+const leftGarage = await page.evaluate(async () => { const bay = await import('./src/render/garageBay.js'); return { bay: bay.isGarageBayShown(), hud: !document.getElementById('hud').classList.contains('hidden') }; });
+if (!garage.open || !garage.bay || !garage.hudHidden || garage.rows !== 5 || garage.swatches !== 5 || garage.garage.engine !== 1 || garage.garage.armor !== 1 || garage.garage.tyres !== 1 || garage.garage.plateSwaps !== 1 || garage.stars !== 0 || !(garage.topSpeed > garage.stock)) errors.push('garage failed: ' + JSON.stringify(garage));
+if (!/SHOWROOM/.test(showroom.tab || '') || showroom.cars < 5 || showroom.owned < 1 || leftGarage.bay || !leftGarage.hud) errors.push('garage showroom / exit failed: ' + JSON.stringify({ showroom, leftGarage }));
 // street race: enter the Neon Row Circuit with E, sit out the countdown, then take every checkpoint of both laps
 await page.evaluate(async () => { const g = window.__game, v = g.player.vehicle, { RACES } = await import('./src/races/raceCatalog.js'); const s = RACES[1].start; v.pos.set(s.x, 0, s.z); v.heading = s.heading; v.vx = v.vz = 0; });
 await ff(0.4); await page.keyboard.press('KeyE'); await ff(1);
@@ -140,7 +145,9 @@ await page.evaluate(async () => { const g = window.__game; const vp = await impo
 await ff(0.2); await page.keyboard.press('KeyT'); await ff(3);
 // pause map
 await page.keyboard.press('KeyM'); await page.waitForFunction('window.__game.paused === true', null, { timeout: 20000 });
-log('paused', await page.evaluate(() => ({ paused: window.__game.paused, mapVisible: !document.getElementById('pause-map').classList.contains('hidden') })));
+const paused = await page.evaluate(() => ({ paused: window.__game.paused, mapVisible: !document.getElementById('pause-map').classList.contains('hidden'), stats: [...document.querySelectorAll('#pause-map .pm-bigstats span')].map((s) => s.textContent), legend: document.querySelectorAll('#pause-map .pm-maplegend span').length }));
+log('paused', paused);
+if (paused.stats.length !== 6 || paused.legend < 6) errors.push('pause map stats header or legend missing: ' + JSON.stringify(paused));
 await page.screenshot({ path: join(shots, 'smoke-map.jpg'), type: 'jpeg', quality: 80 });
 for (const tab of ['STORY', 'STATS', 'CREW', 'SETTINGS', 'CONTROLS', 'SAVE']) { await page.click(`.pm-tabs button[data-tab="${tab}"]`); await page.screenshot({ path: join(shots, `smoke-pause-${tab.toLowerCase()}.jpg`), type: 'jpeg', quality: 80 }); }
 await page.evaluate(async () => { const ve = await import('./src/vehicles/vehicleEntry.js'); ve.leaveVehicle(window.__game.player); });

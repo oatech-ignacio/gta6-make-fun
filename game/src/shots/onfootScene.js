@@ -20,8 +20,8 @@ import { playDialogue } from '../ui/dialogueBox.js';
 import { setProgressState, pursuitCruiser, trafficCar, fleeingPed, advanceScene } from './sceneStagers.js';
 
 export function stageOnfoot(api) {
-  lighting.sunAzimuthBias = 0.22;
-  setTimeOfDay(12.6);
+  lighting.sunAzimuthBias = -0.05;
+  setTimeOfDay(11.6);
   setProgressState(7320, 180, 3);
   giveWeapon('pistol', 84); selectWeapon('pistol'); game.ammo.pistol.clip = 9;
   const z = GRID_Z[3] + 4.8, west = -Math.PI / 2, east = Math.PI / 2;
@@ -53,7 +53,7 @@ export function stageOnfoot(api) {
     ped.panic = 20; ped.fleeFrom = { x: 200, z };
   });
   // wide over-the-shoulder framing: the whole street, both sidewalks and the cruisers at the far end
-  cameraRig.override = { x: 222, y: 3.5, z: z + 1.2, tx: 194, ty: 1.3, tz: z - 3, fov: 60, yaw: west };
+  cameraRig.override = { x: 224.5, y: 5.2, z: z - 0.6, tx: 190, ty: 0.4, tz: z - 3.2, fov: 60, yaw: west };
   for (let i = 0; i < 5; i++) { game.player.fireAnim = 5; api.simulateWorld(1 / 30, 1 / 30); }
   setObjective('Take out the <b>Brine Kings</b>. Bay Patrol is closing in.');
   setRadioBanner(null);

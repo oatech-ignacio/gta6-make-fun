@@ -39,7 +39,7 @@ export function resetProgress() {
   game.allies = {}; game.races = { wins: {}, best: {} }; game.garage = newGarage();
   resetWantedState();
 }
-export function newGarage() { return { engine: 0, armor: 0, tyres: 0, resprays: 0, plateSwaps: 0, visited: {} }; }
+export function newGarage() { return { engine: 0, armor: 0, tyres: 0, resprays: 0, plateSwaps: 0, visited: {}, collection: {} }; }
 export function resetWantedState() {
   Object.assign(game.wanted, { stars: 0, heat: 0, unseen: 0, evading: false, flash: 0 });
 }

@@ -12,6 +12,9 @@ import { spendMoney } from './economy.js';
 import { clearWantedLevel } from './wantedLevel.js';
 import { showNotification } from '../ui/notifications.js';
 import { showGaragePanel, hideGaragePanel } from '../ui/garagePanel.js';
+import { setHudVisible } from '../ui/hud.js';
+import { showGarageBay, hideGarageBay } from '../render/garageBay.js';
+import { TRAFFIC_TYPES } from '../vehicles/vehicleCatalog.js';
 
 export const GARAGES = [{ key: 'respray', place: PLACES.respray }, { key: 'customs', place: PLACES.customs }];
 export const PAINTS = [
@@ -26,6 +29,7 @@ export const UPGRADES = [
 export const MAX_LEVEL = 3, PAINT_PRICE = 250, REPAIR_PRICE = 150;
 
 let open = null;   // the garage whose menu is showing
+let tab = 'workshop';
 
 export function initGarage() {
   for (const g of GARAGES) createMarker({ x: g.place.x, z: g.place.z, color: 0x4fe3d6, icon: 'S', label: g.place.name, radius: 3, persistent: true });
@@ -81,41 +85,55 @@ export function buyPlates() {
   return true;
 }
 
-/** Everything the garage panel draws: the car's four stat bars and the priced rows with their keys. */
+/** Every car model the player has driven goes into the showroom collection. */
+export function getCollection() { return TRAFFIC_TYPES.map((t) => ({ ...t, owned: !!game.garage.collection[t.key] })); }
+
+/** Everything the garage panel draws: tabs, the car's stat bars, paint swatches, priced workshop rows with
+ *  OWNED states, and the showroom collection. */
 export function getGarageMenu() {
   const v = game.player.vehicle, g = game.garage, base = v.baseSpec || v.spec;
   const bar = (label, value, gain) => ({ label, value, gain });
-  const paints = PAINTS.map((p, i) => ({ key: String(i + 1), label: p.name, swatch: hex(p.color), price: v.color === p.color ? 'ON THE CAR' : formatMoney(PAINT_PRICE) }));
-  paints.push({ key: '6', label: 'Full repair', price: v.health >= 100 ? 'NO DAMAGE' : formatMoney(REPAIR_PRICE) });
-  const upgrades = UPGRADES.map((u) => ({ key: u.digit, label: u.name, level: g[u.key], max: MAX_LEVEL, price: g[u.key] >= MAX_LEVEL ? 'MAXED' : formatMoney(u.prices[g[u.key]]) }));
-  upgrades.push({ key: '0', label: `Plate swap${game.wanted.stars ? ' &middot; shakes the cops' : ''}`, price: formatMoney(platePrice()) }, { key: 'E', label: 'Leave the garage', price: '' });
+  const swatches = PAINTS.map((p, i) => ({ key: String(i + 1), label: p.name, swatch: hex(p.color), on: v.color === p.color }));
+  const rows = [{ key: '6', label: 'Full repair', note: `${Math.round(v.health)}% body`, price: formatMoney(REPAIR_PRICE), state: v.health >= 100 ? 'owned' : 'buy', stateText: 'NO DAMAGE' }];
+  for (const u of UPGRADES) {
+    const lvl = g[u.key], maxed = lvl >= MAX_LEVEL;
+    rows.push({ key: u.digit, label: `${u.name} &middot; stage ${Math.min(lvl + 1, MAX_LEVEL)}`, level: lvl, max: MAX_LEVEL, price: maxed ? '' : formatMoney(u.prices[lvl]), state: maxed ? 'owned' : 'buy', stateText: 'OWNED' });
+  }
+  rows.push({ key: '0', label: 'Plate swap', note: game.wanted.stars ? 'shakes the cops' : `${g.plateSwaps} swapped`, price: formatMoney(platePrice()), state: 'buy' });
+  const collection = getCollection();
   return {
-    title: open.place.name, car: `${v.spec.name} &middot; ${v.spec.klass}`, cash: formatMoney(game.money),
+    tab, title: open.place.name, car: `${v.spec.name} &middot; ${v.spec.klass}`, cash: formatMoney(game.money), paintPrice: formatMoney(PAINT_PRICE),
     stats: [bar('Top speed', base.maxSpeed / 75, base.maxSpeed * 0.07 * g.engine / 75), bar('Acceleration', base.accel / 42, base.accel * 0.09 * g.engine / 42),
       bar('Armour', 0.4, 0.18 * g.armor), bar('Grip', base.grip / 10, base.grip * 0.08 * g.tyres / 10)],
-    paints, upgrades,
+    swatches, rows, collection, owned: collection.filter((c) => c.owned).length,
   };
 }
 
+function refreshGarage() { showGarageBay(game.player.vehicle); showGaragePanel(getGarageMenu()); }
+
 export function openGarage(garage) {
-  open = garage; game.garage.visited[garage.key] = true; game.flags.controlsLocked = true;
+  open = garage; tab = 'workshop'; game.garage.visited[garage.key] = true; game.flags.controlsLocked = true;
   const v = game.player.vehicle; v.vx = v.vz = 0;
-  showGaragePanel(getGarageMenu());
+  setHudVisible(false); refreshGarage();
 }
 
-export function closeGarage() { open = null; game.flags.controlsLocked = false; hideGaragePanel(); }
+export function closeGarage() { open = null; game.flags.controlsLocked = false; hideGaragePanel(); hideGarageBay(); setHudVisible(true); }
+
+/** WORKSHOP (paint, repair, upgrades) or SHOWROOM (collected car models); Q flips between them. */
+export function setGarageTab(name) { tab = name; if (open) refreshGarage(); }
 
 export function updateGarage() {
   const player = game.player, v = player.vehicle;
-  if (v) applyTune(v);
+  if (v) { applyTune(v); if (!v.isPolice) game.garage.collection[v.type] = true; }
   if (open) {
     if (!v || !near(open.place, 8) || wasKeyPressed('KeyE') || wasKeyPressed('Escape')) return closeGarage();
+    if (wasKeyPressed('KeyQ')) setGarageTab(tab === 'workshop' ? 'showroom' : 'workshop');
     let bought = null;
     PAINTS.forEach((p, i) => { if (wasKeyPressed('Digit' + (i + 1))) bought = buyPaint(i); });
     if (wasKeyPressed('Digit6')) bought = buyRepair();
     for (const u of UPGRADES) if (wasKeyPressed('Digit' + u.digit)) bought = buyUpgrade(u.key);
     if (wasKeyPressed('Digit0')) bought = buyPlates();
-    if (bought !== null) { playSound(bought ? 'cash' : 'empty', player.pos); showGaragePanel(getGarageMenu()); }
+    if (bought !== null) { playSound(bought ? 'cash' : 'empty', player.pos); refreshGarage(); }
     return;
   }
   let prompt = null;

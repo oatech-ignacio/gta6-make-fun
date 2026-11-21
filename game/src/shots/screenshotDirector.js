@@ -12,8 +12,9 @@ import { stageChase } from './chaseScene.js';
 import { stageOnfoot } from './onfootScene.js';
 import { stageRace } from './raceScene.js';
 import { stageStart, stageMap } from './menuScenes.js';
+import { stageGarage } from './garageScene.js';
 
-export const SCREENSHOT_SCENES = { chase: stageChase, onfoot: stageOnfoot, race: stageRace, start: stageStart, map: stageMap };
+export const SCREENSHOT_SCENES = { chase: stageChase, onfoot: stageOnfoot, race: stageRace, garage: stageGarage, start: stageStart, map: stageMap };
 
 export async function runScreenshotScene(name, api) {
   Math.random = createSeededRandom(game.seed + 971);

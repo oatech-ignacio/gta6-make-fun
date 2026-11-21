@@ -21,7 +21,7 @@ const MAX_BYTES = 240 * 1024;
 const SHOTS = [
   { file: '1-chase.jpg', name: 'chase' },
   { file: '2-onfoot.jpg', name: 'onfoot' },
-  { file: '3-race.jpg', name: 'race' },
+  { file: '3-garage.jpg', name: 'garage' },
   { file: '4-map.jpg', name: 'map' },
 ];
 
@@ -49,9 +49,9 @@ async function captureShot(page, base, shot) {
     const visible = (el) => el && !el.closest('.hidden') && el.getBoundingClientRect().width > 0;
     const errors = [];
     const pairs = [['mission-banner', 'radio-banner'], ['radio-banner', 'hud-topright'],
-      ['weapon-bar', 'vehicle-panel'], ['weapon-bar', 'foot-panel'], ['dialogue', 'hud-bottomright'],
-      ['objective', 'hud-bottomright'], ['dialogue', 'objective'], ['progress-wrap', 'dialogue'],
-      ['police-panel', 'crew-panel'], ['crew-panel', 'weapon-bar'], ['crew-panel', 'hud-bottomright'], ['race-hud', 'hud-topright'], ['race-hud', 'mission-banner'], ['notifications', 'minimap-frame']];
+      ['weapon-bar', 'vehicle-panel'], ['hud-topright', 'hud-bottomright'], ['hud-topleft', 'hud-bottomleft'], ['dialogue', 'hud-bottomright'],
+      ['objective', 'hud-bottomright'], ['dialogue', 'objective'], ['progress-wrap', 'dialogue'], ['progress-wrap', 'radio-banner'], ['dialogue', 'hud-bottomleft'],
+      ['police-panel', 'crew-panel'], ['crew-panel', 'weapon-bar'], ['crew-panel', 'hud-bottomright'], ['race-hud', 'hud-topright'], ['race-hud', 'mission-banner'], ['notifications', 'minimap-frame'], ['notifications', 'foot-panel']];
     for (const [a, b] of pairs) {
       const ea = document.getElementById(a), eb = document.getElementById(b);
       if (!visible(ea) || !visible(eb)) continue;
@@ -61,6 +61,7 @@ async function captureShot(page, base, shot) {
     if (name === 'chase' && (!g.player.vehicle || g.wanted.stars !== 4 || !g.helicopter?.active)) errors.push('incomplete chase state');
     if (name === 'chase' && (g.vehicles.filter((v) => v.isPolice && v.siren).length < 5 || document.querySelectorAll('#crew-panel .cw').length !== 3)) errors.push('chase needs five cruisers and the crew panel');
     if (name === 'race' && (!g.player.vehicle || document.getElementById('race-hud').classList.contains('hidden') || g.vehicles.filter((v) => v.ai && v.ai.mode === 'racer').length !== 3)) errors.push('incomplete race state');
+    if (name === 'garage' && (document.getElementById('garage-panel').classList.contains('hidden') || !document.querySelector('#garage-panel .g-tabs') || document.querySelectorAll('#garage-panel .g-sw').length !== 5)) errors.push('garage menu not open');
     if (name === 'onfoot' && (g.player.vehicle || g.wanted.stars !== 2 || g.activeMission?.step.type !== 'eliminate')) errors.push('incomplete gunfight state');
     if (name === 'map' || name === 'start') {
       const selector = name === 'map' ? '#pause-map .slot' : '#start-screen .slot';

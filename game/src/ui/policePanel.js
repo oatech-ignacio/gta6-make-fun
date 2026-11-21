@@ -30,6 +30,7 @@ export function updatePolicePanel(dt) {
   refresh = 0.25;
   const { units, total } = getHeadlineUnits(4);
   const html = `<h4>POLICE RESPONSE<small>${total} UNIT${total === 1 ? '' : 'S'} &middot; ${game.wanted.stars}★</small></h4>`
-    + (units.length ? units.map(unitRow).join('') : '<div class="pu none">Units dispatched&hellip;</div>');
+    + (units.length ? units.map(unitRow).join('') : '<div class="pu none">Units dispatched&hellip;</div>')
+    + (total > units.length ? `<div class="pu more">+${total - units.length} more units converging</div>` : '');
   if (html !== lastHtml) { lastHtml = html; panel.innerHTML = html; }
 }

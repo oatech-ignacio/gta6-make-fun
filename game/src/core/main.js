@@ -27,6 +27,7 @@ import { initSideActivities, updateSideActivities } from '../missions/sideActivi
 import { initStreetRaces, updateStreetRaces } from '../races/streetRaces.js';
 import { updateCrew } from '../crew/crewAbilities.js';
 import { initGarage, updateGarage, isGarageOpen } from '../systems/garage.js';
+import { updateGarageBay } from '../render/garageBay.js';
 import { initCrewPanel, updateCrewPanel } from '../ui/crewPanel.js';
 import { initRaceHud, updateRaceHud } from '../ui/raceHud.js';
 // combat, pickups, shops, respawn
@@ -88,6 +89,7 @@ export function simulateWorld(dt, realDt = dt) {
   updatePlayerRespawn(realDt);
   updateTrafficLights(game.time);
   updateCityAnimations(game.city, dt);
+  updateGarageBay(realDt);
   updateVisualEffects(dt);
   updateFollowCamera(realDt);
   const focus = game.player.vehicle ? game.player.vehicle.pos : game.player.pos;

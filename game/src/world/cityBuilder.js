@@ -11,6 +11,7 @@ import { generateBlockBuildings, generateFringeBuildings, addBuildingVolume } fr
 import { buildNeonSigns } from './neonSigns.js';
 import { buildPalmTrees, buildBroadleafTrees } from './palmTrees.js';
 import { layoutStreetLights, buildStreetLights } from './streetLights.js';
+import { buildSunArch } from './sunArch.js';
 import { buildCauseway, buildPier, buildFerrisWheel, buildDockCranes, buildCraneTower, buildIslandEstate, buildBeachProps, buildFountainsAndTanks, buildPlaceTotems } from './landmarks.js';
 import { buildOcean } from './ocean.js';
 import { createSkyDome } from './skyDome.js';
@@ -135,6 +136,7 @@ export function buildCity(scene, rng) {
   scene.add(buildStreetLights(lamps));
   const beacons = buildBeacons(ctx.beacons); scene.add(beacons);
   const ferris = buildFerrisWheel(); scene.add(ferris);
+  scene.add(buildSunArch());
   scene.add(buildOcean());
   const sky = createSkyDome(); scene.add(sky);
 

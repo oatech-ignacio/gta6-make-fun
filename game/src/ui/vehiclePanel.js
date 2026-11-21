@@ -23,13 +23,13 @@ export function describeCondition(v) {
 export function updateVehiclePanel() {
   const player = game.player, v = player.vehicle;
   el['vehicle-panel'].classList.toggle('hidden', !v);
-  el['foot-panel'].classList.toggle('hidden', !!v);
-  if (!v) {
-    const district = getDistrictAt(player.pos.x, player.pos.z);
-    setText(el['district-name'], district.name.toUpperCase());
-    setText(el['district-street'], `${nearestStreetName(player.pos.x, player.pos.z)} · ${district.tagline}`);
-    return;
-  }
+  // the location label above the minimap is always shown, on foot and behind the wheel
+  const at = v ? v.pos : player.pos, district = getDistrictAt(at.x, at.z);
+  setText(el['district-name'], district.name.toUpperCase());
+  const street = nearestStreetName(at.x, at.z);
+  setText(el['district-street'], street.toUpperCase() === district.name.toUpperCase() ? `${street} · ${district.tagline}` : street);
+  el['foot-panel'].style.setProperty('--district', district.color);
+  if (!v) return;
   const cond = describeCondition(v), station = getCurrentStation();
   setText(el['vehicle-name'], v.spec.name.toUpperCase());
   setText(el['vehicle-class'], v.isPolice ? 'POLICE' : v.spec.klass.toUpperCase());

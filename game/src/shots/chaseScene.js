@@ -1,6 +1,6 @@
-// Job: stage the `chase` cover screenshot. Morning golden hour on Corsair Boulevard: a stolen Marlin RS runs
-// north along the beach with four stars, Bay Patrol cruisers, a Bulwark van and Air One behind it, through
-// rush-hour traffic.
+// Job: stage the `chase` cover screenshot. Sunlit morning on Corsair Boulevard: a stolen Marlin RS runs north
+// along the beach with four stars, Bay Patrol cruisers, a Bulwark van and Air One's searchlight behind it,
+// through rush-hour traffic, with the Arco del Sol on the boulevard's vanishing point.
 import * as THREE from 'three';
 import { game } from '../core/gameState.js';
 import { cameraRig } from '../render/followCamera.js';
@@ -17,7 +17,6 @@ import { giveWeapon, selectWeapon } from '../combat/weaponCatalog.js';
 import { fireWeapon } from '../combat/weaponFire.js';
 import { startMission, jumpToMissionStep } from '../missions/missionRunner.js';
 import { setObjective, setRadioBanner, hideTitleCard } from '../ui/hud.js';
-import { showNotification } from '../ui/notifications.js';
 import { playDialogue } from '../ui/dialogueBox.js';
 import { spawnTyreSmoke } from '../combat/visualEffects.js';
 import { setProgressState, pursuitCruiser, trafficCar, fleeingPed, advanceScene } from './sceneStagers.js';
@@ -31,8 +30,8 @@ const CIVILIANS = [['taxi', -2, -17, SOUTH], ['compact', -5.5, -9, SOUTH, 0x3fc1
   ['sedan', 5.5, 52, NORTH, 0xc9ced6], ['taxi', 2, 60, NORTH], ['compact', 5.5, 72, NORTH, 0xff7fb0], ['van', 2, 84, NORTH]];
 
 export function stageChase(api) {
-  lighting.sunAzimuthBias = -0.45;
-  setTimeOfDay(7.9);
+  lighting.sunAzimuthBias = -0.12;
+  setTimeOfDay(8.5);
   setProgressState(18450, 310, 4);
   giveWeapon('pistol', 60); giveWeapon('smg', 128); selectWeapon('smg');
   teleportPlayer(X + 2, Z0);
@@ -59,14 +58,15 @@ export function stageChase(api) {
   for (let i = 0; i < 5; i++) spawnTyreSmoke(p.x - 0.6, 0.25, p.z + 2.4 + i * 0.8);
   setObjective('Four stars. <b>Lose Bay Patrol</b> and get Luz to the motel.');
   setRadioBanner('NEON DRIVE 98.5', 'Midnight on Corsair', 99);
-  showNotification('<b>POLICE SCANNER</b>All units: red Marlin RS northbound on Corsair Boulevard.', 'warn', 0);
   playDialogue([{ who: 'luz', text: 'Air One has us! Cut through Neon Row. I know a way out.' }]);
   // Air One low over the convoy, nose toward the suspect
-  game.helicopter.pos.set(p.x - 3, 12, p.z + 24);
-  game.helicopter.mesh.rotation.y = NORTH + 0.5;
-  // look-back chase camera from the beach side of the road: promenade on the left, the boulevard and hotels ahead
+  game.helicopter.pos.set(p.x + 2.2, 5.0, p.z + 21);
+  game.helicopter.mesh.rotation.y = NORTH + 1.25;
+  game.helicopter.mesh.scale.setScalar(1.1);
+  // close look-back chase camera: the Marlin fills the lower middle, the convoy and Air One behind it and the
+  // Arco del Sol on the boulevard's vanishing point
   cameraRig.yaw = SOUTH;
-  cameraRig.override = { x: p.x + 5.5, y: 3.6, z: p.z - 9, tx: p.x - 6, ty: 1.6, tz: p.z + 14, fov: 60, yaw: SOUTH };
+  cameraRig.override = { x: p.x + 0.6, y: 3.0, z: p.z - 8.2, tx: p.x - 0.6, ty: 0, tz: p.z + 12, fov: 60, yaw: SOUTH };
   api.simulateWorld(1 / 60, 1 / 60);
   const gunner = convoy[0].ai.gunner;
   if (gunner) fireWeapon(gunner, 'pistol', new THREE.Vector3(0, 0.01, -1), 0.02);

@@ -7,6 +7,7 @@ import { getRespectRank } from '../systems/economy.js';
 import { STORY_MISSIONS } from '../missions/storyMissions.js';
 import { getDistrictAt } from '../world/cityLayout.js';
 import { renderSaveSlots } from './saveSlotList.js';
+import { mapStatsHeaderHtml, mapLegendHtml } from './mapStatsHeader.js';
 import { PAUSE_TABS, completionRingHtml, pauseTabHtml, bindPauseTab, hustleRows } from './pauseTabs.js';
 
 let open = false, handlers = { onResume: null, onQuit: null }, mapCanvas = null, activeTab = 'MAP';
@@ -25,7 +26,7 @@ function summaryHtml() {
 }
 
 function mapTabHtml() {
-  return `<div class="pm-mapwrap"><canvas id="pm-canvas" width="1140" height="820"></canvas></div>
+  return `<div class="pm-mapcol">${mapStatsHeaderHtml()}<div class="pm-mapwrap"><canvas id="pm-canvas" width="1140" height="820"></canvas>${mapLegendHtml()}</div></div>
     <div class="pm-side">
       <div class="panel pm-card pm-hero">${completionRingHtml('15vh')}<div><h3>DEZ MARLOWE &middot; ${getRespectRank().name.toUpperCase()}</h3><div class="pm-stats">${summaryHtml()}</div></div></div>
       <div class="panel pm-card"><h3>STORY · ${game.missionIndex}/8 COMPLETE</h3><div class="pm-story-list">${STORY_MISSIONS.map((m, i) => `<span class="${i < game.missionIndex ? 'done' : ''}">${i < game.missionIndex ? '✓' : i + 1} ${m.title}</span>`).join('')}</div></div>

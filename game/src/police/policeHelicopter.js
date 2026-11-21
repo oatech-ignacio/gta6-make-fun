@@ -21,14 +21,17 @@ function buildHelicopterMesh() {
   for (const sx of [-1, 1]) { b.addBox(sx * 1.0, -1.25, 0.4, 0.12, 0.12, 3.6, { color: [0.2, 0.2, 0.22] }); b.addBox(sx * 0.9, -0.9, 1.2, 0.08, 0.7, 0.08, { color: [0.2, 0.2, 0.22] }); b.addBox(sx * 0.9, -0.9, -0.4, 0.08, 0.7, 0.08, { color: [0.2, 0.2, 0.22] }); }
   b.addBox(0, 1.05, 0.4, 0.3, 0.4, 0.3, { color: [0.2, 0.2, 0.22] });
   const group = new THREE.Group();
-  const body = new THREE.Mesh(b.build(), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.45, metalness: 0.3 }));
+  const body = new THREE.Mesh(b.build(), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.45, metalness: 0.3, emissive: 0x30343e }));   // lifted so the belly reads in daylight
   body.castShadow = true;
   const rotor = new THREE.Mesh(new THREE.BoxGeometry(11, 0.06, 0.34), new THREE.MeshBasicMaterial({ color: 0x15161a, transparent: true, opacity: 0.75 }));
   rotor.position.set(0, 1.3, 0.4);
   const rotor2 = rotor.clone(); rotor2.rotation.y = Math.PI / 2; rotor.add(rotor2); rotor2.position.set(0, 0, 0);
   const tail = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.9, 0.2), rotor.material); tail.position.set(0.25, 1.0, -5.5);
-  const beamGeo = new THREE.ConeGeometry(7, 40, 20, 1, true); beamGeo.translate(0, -20, 0);
-  const beam = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color: 0xcfe2ff, transparent: true, opacity: 0.09, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  // searchlight: a soft outer cone plus a brighter core so it still reads against a daylight sky
+  const beamGeo = new THREE.ConeGeometry(6, 40, 24, 1, true); beamGeo.translate(0, -20, 0);
+  const beam = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color: 0xe4eeff, transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  const coreGeo = new THREE.ConeGeometry(2.2, 40, 16, 1, true); coreGeo.translate(0, -20, 0);
+  beam.add(new THREE.Mesh(coreGeo, new THREE.MeshBasicMaterial({ color: 0xfff6d8, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })));
   beam.position.set(0, -1, 1.6);
   const strobe = new THREE.Sprite(new THREE.SpriteMaterial({ map: getGlowTexture(), color: 0xff2030, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
   strobe.scale.set(5, 5, 1); strobe.position.set(0, -1.2, -1);

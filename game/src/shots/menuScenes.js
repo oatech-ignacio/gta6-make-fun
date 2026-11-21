@@ -37,7 +37,9 @@ export function stageStart(api) {
 
 export function stageMap(api) {
   seedSaveSlots();
-  giveWeapon('pistol', 60); giveWeapon('smg', 128);
+  giveWeapon('pistol', 60); giveWeapon('smg', 128); giveWeapon('shotgun', 24);
+  for (const key of ['sports', 'taxi', 'sedan', 'muscle', 'compact']) game.garage.collection[key] = true;
+  game.garage.visited = { customs: true, respray: true }; game.stats.flamingos = Math.max(game.stats.flamingos || 0, 5);
   refreshMissionStartMarker();
   pursuitCruiser(-100, 240, Math.PI / 2, 10);
   pursuitCruiser(-48, 60, Math.PI, 10);

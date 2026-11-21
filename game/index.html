@@ -24,22 +24,25 @@
       <div id="mission-next"></div>
       <div id="mission-timer" class="hidden"></div>
     </div>
+    <div id="police-panel" class="hidden"></div>
+    <div id="notifications"></div>
   </div>
   <div id="radio-banner" class="hidden"><span class="radio-icon">&#9835;</span><span id="radio-name"></span><span id="radio-track"></span></div>
   <div id="race-hud" class="hidden"></div>
   <div id="hud-topright">
-    <div id="money-row"><span id="sight-chip" class="hidden"></span><div id="clock">17:30</div><div id="money">$0</div></div>
     <div id="wanted-row"><span id="wanted-label" class="hidden">WANTED</span><div id="wanted-stars"></div></div>
+    <div id="money-row"><span id="sight-chip" class="hidden"></span><div id="clock">17:30</div><div id="money">$0</div></div>
+    <div id="vitals">
+      <div class="vital"><small>HEALTH</small><div class="bar health"><i id="health-fill"></i></div></div>
+      <div class="vital"><small>ARMOUR</small><div class="bar armor"><i id="armor-fill"></i></div></div>
+    </div>
     <div id="respect-line"><span id="respect-label">RESPECT 0/100</span><div id="respect-bar"><i></i></div><span id="respect-rank">STREET RAT</span></div>
-    <div id="police-panel" class="hidden"></div>
     <div id="crew-panel" class="hidden"></div>
+    <div id="weapon-bar"></div>
   </div>
   <div id="hud-bottomleft">
+    <div id="foot-panel"><div id="district-name"></div><div id="district-street"></div></div>
     <div id="minimap-frame"><canvas id="minimap" width="220" height="220"></canvas><div id="minimap-north">N</div></div>
-    <div id="vitals">
-      <div class="bar health"><i id="health-fill"></i></div>
-      <div class="bar armor"><i id="armor-fill"></i></div>
-    </div>
   </div>
   <div id="hud-bottomright">
     <div id="vehicle-panel" class="hidden">
@@ -48,13 +51,10 @@
       <div id="vehicle-condition"><span id="vehicle-health-text"></span><div class="bar damage"><i id="vehicle-health-fill"></i></div></div>
       <div id="vehicle-radio"></div>
     </div>
-    <div id="foot-panel"><div id="district-name"></div><div id="district-street"></div></div>
-    <div id="weapon-bar"></div>
   </div>
   <div id="objective"></div>
   <div id="prompt" class="hidden"></div>
   <div id="crosshair" class="hidden"></div>
-  <div id="notifications"></div>
   <div id="progress-wrap" class="hidden"><div id="progress-label"></div><div class="bar progress"><i id="progress-fill"></i></div></div>
 </div>
 

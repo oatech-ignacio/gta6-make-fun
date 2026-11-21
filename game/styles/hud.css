@@ -27,7 +27,13 @@
 #minimap-frame.flash-police.alt { box-shadow: 0 0 0 0.35vh #ff3344, 0 0 30px rgba(255,50,60,0.9), 0 6px 18px rgba(0,0,0,0.6); }
 #minimap { width: 100%; height: 100%; display: block; }
 #minimap-north { position: absolute; left: 50%; top: 0.3vh; transform: translateX(-50%); font-family: var(--display); font-size: 1.8vh; color: #fff; }
-#vitals { display: flex; gap: 0.5vw; margin-top: 1vh; width: 27vh; }
+#vitals { display: flex; gap: 0.8vw; width: 24vw; background: rgba(10,6,22,0.72); padding: 0.5vh 0.8vw; border-right: 0.35vw solid #7dff8a; }
+.vital { flex: 1; display: flex; align-items: center; gap: 0.5vw; }
+.vital small { font-family: var(--display); font-size: 1.9vh; letter-spacing: 0.1em; color: #e9e2ff; }
+.vital .bar { height: 1.8vh; }
+#foot-panel { margin-bottom: 1vh; width: 30vh; box-sizing: border-box; background: linear-gradient(90deg, rgba(10,6,22,0.86), rgba(10,6,22,0.4)); border-left: 0.4vw solid var(--district, var(--teal)); padding: 0.4vh 0.8vw; }
+#foot-panel #district-name { font-size: 2.8vh; color: var(--district, #fff); }
+.pu.more { color: #c9d4ff; font-weight: 600; font-size: 2vh; }
 .bar { height: 1.5vh; background: rgba(0,0,0,0.62); border: 1px solid rgba(255,255,255,0.35); flex: 1; overflow: hidden; transform: skewX(-14deg); }
 .bar i { display: block; height: 100%; width: 100%; }
 .bar.health i { background: linear-gradient(180deg, #7dff8a, #1fb84a); }
@@ -53,7 +59,7 @@
 .note.money { border-color: #6dff8f; } .note.warn { border-color: #ff5d5d; } .note.gold { border-color: var(--gold); }
 .note b { font-family: var(--display); letter-spacing: 0.08em; font-weight: 400; display: block; color: var(--gold); }
 @keyframes notein { from { transform: translateX(-30px); opacity: 0; } }
-#progress-wrap { position: absolute; left: 50%; bottom: 23vh; transform: translateX(-50%); width: 18vw; text-align: center; font-family: var(--display); letter-spacing: 0.1em; font-size: 2.2vh; }
+#progress-wrap { position: absolute; left: 48%; top: 9vh; transform: translateX(-50%); width: 18vw; text-align: center; font-family: var(--display); letter-spacing: 0.1em; font-size: 2.2vh; }
 #progress-wrap .bar { height: 1.2vh; margin-top: 0.3vh; }
 
 /* ---------- title card / dialogue / banners ---------- */
@@ -96,13 +102,12 @@
 #wanted-label { font-family: var(--display); font-size: 4.8vh; line-height: 1; letter-spacing: 0.08em; color: #ff4050; text-shadow: 0 3px 0 #000, 0 0 16px rgba(255,40,60,0.8); }
 
 /* ---------- crew panel: ability hotkey, ally, READY / cooldown chip ---------- */
-#crew-panel { box-sizing: border-box; width: 29vw; display: flex; flex-direction: column; gap: 0.5vh; text-shadow: 0 1px 0 #000; }
-.cw { display: flex; align-items: center; gap: 0.7vw; background: linear-gradient(270deg, rgba(6,30,34,0.92), rgba(10,6,22,0.78)); border: 1px solid rgba(43,224,208,0.55); border-right: 0.35vw solid var(--teal); padding: 0.35vh 0.7vw; }
-.cw kbd { font-family: var(--display); font-size: 2.6vh; background: var(--teal); color: #04201d; text-shadow: none; border-radius: 0.5vh; width: 3.6vh; height: 3.6vh; line-height: 3.6vh; text-align: center; flex: none; }
-.cw div { flex: 1; line-height: 1.05; }
-.cw b { display: block; font-family: var(--display); font-weight: 400; font-size: 2.4vh; letter-spacing: 0.08em; color: #fff; }
-.cw small { font-size: 1.9vh; font-weight: 600; color: #9fe8df; letter-spacing: 0.04em; }
-.cw em { font-style: normal; font-family: var(--display); font-size: 2vh; letter-spacing: 0.08em; padding: 0 0.6vw; border-radius: 0.4vh; background: #1fb84a; color: #04200c; text-shadow: none; min-width: 3.4vw; text-align: center; }
+#crew-panel { box-sizing: border-box; width: 31vw; display: flex; gap: 0.4vw; text-shadow: 0 1px 0 #000; }
+.cw { flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.45vw; background: rgba(10,6,22,0.82); border: 1px solid rgba(43,224,208,0.55); border-bottom: 0.4vh solid var(--teal); padding: 0.4vh 0.4vw; }
+.cw kbd { font-family: var(--display); font-size: 2.6vh; background: var(--teal); color: #04201d; text-shadow: none; border-radius: 0.5vh; width: 3.4vh; height: 3.4vh; line-height: 3.4vh; text-align: center; flex: none; }
+.cw div { flex: 1; min-width: 0; line-height: 1.1; }
+.cw b { display: block; font-family: var(--display); font-weight: 400; font-size: 2.1vh; letter-spacing: 0.04em; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cw em { display: inline-block; font-style: normal; font-family: var(--display); font-size: 1.8vh; letter-spacing: 0.08em; padding: 0 0.4vw; border-radius: 0.4vh; background: #1fb84a; color: #04200c; text-shadow: none; }
 .cw.cool { border-color: rgba(255,255,255,0.25); border-right-color: #55607a; }
 .cw.cool kbd, .cw.cool em { background: #55607a; color: #fff; }
 .cw.cool b { color: #b9b3cc; }
@@ -147,11 +152,15 @@
 #mission-next b { font-family: var(--display); font-weight: 400; letter-spacing: 0.08em; color: var(--gold); }
 #mission-timer { position: absolute; left: 0; top: calc(100% + 1vh); font-family: var(--display); font-size: 5.6vh; line-height: 1; color: #fff; background: rgba(10,6,22,0.8); padding: 0.6vh 1vw; border-bottom: 0.4vh solid var(--gold); }
 #mission-timer.low { color: #ff5d5d; border-color: #ff5d5d; }
-#notifications { position: absolute; left: 2.2vw; top: 23vh; display: flex; flex-direction: column; gap: 0.8vh; width: 27vw; }
+#notifications { display: flex; flex-direction: column; gap: 0.8vh; width: 27vw; }
+#notifications:empty { display: none; }
+#hud-topleft { display: flex; flex-direction: column; gap: 1vh; width: 30vw; }
+#hud-topleft #police-panel { width: 27vw; margin-top: 0; border-right: none; border-left: 0.4vw solid #5b8cff; }
+#hud-topright #weapon-bar { margin-top: 2.6vh; }
 
 /* ---------- bottom right: vehicle panel / location, weapon bar ---------- */
 #hud-bottomright { position: absolute; right: 2.2vw; bottom: 3vh; display: flex; flex-direction: column; align-items: flex-end; gap: 2vh; width: 28vw; }
-#vehicle-panel, #foot-panel { text-align: right; background: linear-gradient(270deg, rgba(10,6,22,0.84), rgba(10,6,22,0.5) 75%, rgba(10,6,22,0)); padding: 0.7vh 1vw 0.8vh 3vw; border-right: 0.35vw solid var(--pink); box-sizing: border-box; width: 28vw; min-width: 0; order: 2; }
+#vehicle-panel { text-align: right; background: linear-gradient(270deg, rgba(10,6,22,0.84), rgba(10,6,22,0.5) 75%, rgba(10,6,22,0)); padding: 0.7vh 1vw 0.8vh 3vw; border-right: 0.35vw solid var(--pink); box-sizing: border-box; width: 28vw; min-width: 0; order: 2; }
 #vehicle-name { font-family: var(--display); font-size: 2.9vh; letter-spacing: 0.1em; color: #fff; }
 #vehicle-class { font-family: var(--display); font-size: 2vh; letter-spacing: 0.14em; color: var(--teal); margin-left: 0.7vw; }
 #speedo { font-family: var(--display); font-size: 7vh; line-height: 0.95; font-style: italic; }

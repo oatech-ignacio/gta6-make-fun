@@ -3,6 +3,7 @@
 import { game } from '../core/gameState.js';
 import { GRID_X, GRID_Z, ROAD_HALF, WORLD_BOUNDS, DISTRICTS, CAUSEWAY_Z, BEACH_X, listCityBlocks, PLACES, AVENUE_NAMES, STREET_NAMES } from '../world/cityLayout.js';
 import { getMarkers } from '../missions/missionMarkers.js';
+import { SUN_ARCH } from '../world/sunArch.js';
 import { cameraRig } from '../render/followCamera.js';
 import { findNodePath, nearestNode } from '../world/roadNetwork.js';
 
@@ -167,6 +168,8 @@ export function drawCityMap(canvas) {
   strokeRoute(ctx, X, Z, 4.5);
   // places
   for (const key of Object.keys(PLACES)) { const p = PLACES[key]; drawBlip(ctx, X(p.x), Z(p.z), p.color, p.icon, 10.5); }
+  // landmarks: the Arco del Sol over Corsair Boulevard and the Rueda del Sol wheel on the pier
+  drawBlip(ctx, X(SUN_ARCH.x), Z(SUN_ARCH.z), '#ff8f5a', 'A', 11.5); drawBlip(ctx, X(628), Z(144), '#ff8f5a', '✺', 11.5);
   for (const m of getMarkers()) {
     if (m.persistent && m.kind !== 'missionStart' && !m.onMap) continue;
     const x = X(m.x), z = Z(m.z);

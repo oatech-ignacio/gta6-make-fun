@@ -34,6 +34,16 @@
 .pm-clock { margin-left: auto; font-family: var(--display); font-size: 2.6vh; letter-spacing: 0.1em; color: var(--gold); }
 .pm-mapwrap { position: relative; min-height: 0; border: 1px solid rgba(255,255,255,0.18); border-radius: 1vh; overflow: hidden; background: #0d2a44; }
 .pm-mapwrap canvas { width: 100%; height: 100%; display: block; object-fit: cover; }
+.pm-mapcol { display: flex; flex-direction: column; gap: 1vh; min-height: 0; }
+.pm-mapcol .pm-mapwrap { flex: 1; }
+.pm-bigstats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.5vw; }
+.pm-bigstats div { background: linear-gradient(180deg, rgba(255,61,139,0.22), rgba(10,6,22,0.8)); border: 1px solid rgba(255,255,255,0.16); border-bottom: 0.4vh solid var(--pink); border-radius: 0.8vh; text-align: center; padding: 0.4vh 0 0.5vh; }
+.pm-bigstats b { display: block; font-family: var(--display); font-weight: 400; font-size: 4.6vh; line-height: 1; color: #fff; }
+.pm-bigstats b small { font-size: 2.3vh; color: #b9b0d6; }
+.pm-bigstats span { font-family: var(--display); font-size: 1.9vh; letter-spacing: 0.14em; color: var(--gold); }
+.pm-maplegend { position: absolute; right: 0.8vw; bottom: 1vh; display: grid; grid-template-columns: repeat(2, auto); gap: 0.5vh 1.1vw; background: rgba(8,4,18,0.82); border: 1px solid rgba(255,255,255,0.16); border-radius: 0.8vh; padding: 0.7vh 0.9vw; font-size: 1.85vh; font-weight: 600; }
+.pm-maplegend span { display: flex; align-items: center; gap: 0.45vw; white-space: nowrap; }
+.pm-maplegend i { width: 2.1vh; height: 2.1vh; border-radius: 50%; border: 2px solid #000; font-style: normal; font-family: var(--display); font-size: 1.4vh; line-height: 1.8vh; text-align: center; color: #000; }
 .pm-side { display: flex; flex-direction: column; gap: 1.1vh; min-height: 0; overflow: hidden; }
 .pm-card { padding: 1.1vh 1.1vw; }
 .pm-card h3 { font-family: var(--display); font-weight: 400; margin: 0 0 0.8vh; letter-spacing: 0.14em; font-size: 2.3vh; color: var(--teal); }
@@ -72,11 +82,32 @@
 .shop-row.locked { opacity: 0.4; } .shop-row.locked b { color: #ff8d8d; }
 
 /* ---------- garage ---------- */
-#garage-panel { position: fixed; right: 3vw; top: 50%; transform: translateY(-50%); z-index: 35; width: 42vw; padding: 2vh 1.6vw; border-left: 0.5vw solid var(--teal); }
-#garage-panel h2 { font-family: var(--display); font-weight: 400; font-style: italic; font-size: 4.4vh; margin: 0 0 0.3vh; color: var(--gold); letter-spacing: 0.06em; }
-#garage-panel h3 { font-family: var(--display); font-weight: 400; font-size: 2.2vh; margin: 1.2vh 0 0.2vh; color: var(--teal); letter-spacing: 0.14em; }
-#garage-panel p { margin: 0 0 1vh; color: #cfc6e6; font-size: 2.1vh; }
-#garage-panel .shop-row { padding: 0.6vh 0.6vw; font-size: 2.3vh; }
+#garage-panel { position: fixed; right: 2.4vw; top: 50%; transform: translateY(-50%); z-index: 35; width: 40vw; padding: 1.6vh 1.4vw 1.4vh; border-left: 0.5vw solid var(--teal); box-sizing: border-box; }
+#garage-panel h2 { font-family: var(--display); font-weight: 400; font-style: italic; font-size: 4.2vh; margin: 0.8vh 0 0; color: var(--gold); letter-spacing: 0.06em; }
+#garage-panel h3 { font-family: var(--display); font-weight: 400; font-size: 2.3vh; margin: 1.1vh 0 0.4vh; color: var(--teal); letter-spacing: 0.14em; }
+#garage-panel h3 small { font-family: var(--ui); font-size: 1.8vh; letter-spacing: 0.02em; color: #b9b0d6; margin-left: 0.6vw; }
+#garage-panel p { margin: 0 0 0.8vh; color: #cfc6e6; font-size: 2.2vh; display: flex; justify-content: space-between; }
+#garage-panel p b { font-family: var(--display); font-weight: 400; font-size: 2.8vh; color: #6dff8f; }
+.g-tabs { display: flex; gap: 0.4vw; align-items: stretch; }
+.g-tabs span { flex: 1; text-align: center; font-family: var(--display); font-size: 2.5vh; letter-spacing: 0.14em; padding: 0.6vh 0; background: rgba(255,255,255,0.08); color: #b9b0d6; border-bottom: 0.4vh solid transparent; }
+.g-tabs span.on { background: linear-gradient(180deg, rgba(79,227,214,0.35), rgba(79,227,214,0.1)); color: #fff; border-bottom-color: var(--teal); }
+.g-tabs small { font-size: 1.9vh; color: var(--gold); }
+.g-tabs kbd, .g-row kbd, .g-sw kbd, .g-foot kbd { font-family: var(--display); background: #fff; color: #111; border-radius: 0.5vh; padding: 0 0.6vw; font-size: 2.1vh; align-self: center; }
+.g-swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5vw; }
+.g-sw { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.3vh; padding: 0.5vh 0; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.12); border-radius: 0.8vh; }
+.g-sw i { width: 5vh; height: 3.4vh; border-radius: 0.6vh; border: 2px solid rgba(255,255,255,0.8); box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+.g-sw kbd { position: absolute; left: 0.3vw; top: 0.3vh; font-size: 1.6vh; padding: 0 0.3vw; }
+.g-sw small { font-size: 1.6vh; color: #d9cff2; white-space: nowrap; }
+.g-sw.on { border-color: var(--gold); background: rgba(255,209,102,0.16); } .g-sw.on small { color: var(--gold); }
+.g-row { display: flex; align-items: center; gap: 0.8vw; padding: 0.55vh 0.6vw; font-size: 2.3vh; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.g-row span { flex: 1; } .g-row span small { display: block; font-size: 1.7vh; color: #a99fc9; }
+.g-row b { font-family: var(--display); font-weight: 400; color: #6dff8f; min-width: 6vw; text-align: right; }
+.g-row em { font-style: normal; font-family: var(--display); font-size: 1.9vh; letter-spacing: 0.1em; padding: 0.1vh 0.6vw; border-radius: 0.4vh; min-width: 5vw; text-align: center; }
+.g-row em.owned { background: #1fb84a; color: #04200c; } .g-row em.locked { background: #55607a; color: #fff; }
+.g-row.locked span { opacity: 0.55; }
+.g-row .pips { display: flex; gap: 0.25vw; } .g-row .pips i { width: 1.1vw; height: 1.2vh; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4); transform: skewX(-14deg); } .g-row .pips i.on { background: var(--teal); }
+.g-cars { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.2vw; }
+.g-foot { margin-top: 1vh; font-size: 1.9vh; color: #b9b0d6; letter-spacing: 0.06em; }
 .gbar { display: flex; align-items: center; gap: 1vw; font-size: 2.2vh; margin: 0.5vh 0; }
 .gbar span { width: 9vw; color: #d9cff2; }
 .gbar div { flex: 1; display: flex; height: 1.4vh; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); }
